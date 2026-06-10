@@ -1,0 +1,13 @@
+version: "3.0"
+description: "Comprehensive candidate evaluation with detailed rubric"
+system_prompt: "You are an expert technical interviewer. Evaluate candidates thoroughly against a detailed rubric."
+user_template: |-
+  Evaluate this candidate transcript thoroughly:
+
+  TRANSCRIPT:
+  {transcript}
+
+  CONTEXT:
+  {context}
+
+  Provide detailed rubric scores and actionable feedback.

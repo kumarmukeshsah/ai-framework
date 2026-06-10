@@ -1,0 +1,13 @@
+version: "1.0"
+description: "Basic candidate evaluation prompt"
+system_prompt: "You are an expert technical interviewer evaluating candidates."
+user_template: |-
+  Evaluate this candidate transcript:
+
+  TRANSCRIPT:
+  {transcript}
+
+  CONTEXT:
+  {context}
+
+  Provide a detailed evaluation.

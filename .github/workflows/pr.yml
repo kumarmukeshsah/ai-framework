@@ -1,0 +1,139 @@
+name: PR Pipeline
+
+on:
+  pull_request:
+    branches: [main, develop]
+  push:
+    branches: [develop]
+
+jobs:
+  lint:
+    name: Code Quality
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install ruff black mypy
+      - name: Run ruff
+        run: ruff check product/ tests/ evaluation/
+      - name: Run black check
+        run: black --check product/ tests/
+      - name: Run mypy
+        run: mypy product/ --ignore-missing-imports
+
+  unit:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Run unit tests
+        run: |
+          python -m pytest tests/unit/ \
+            -v --cov=product --cov-report=term-missing \
+            --cov-fail-under=80 \
+            --junitxml=reports/junit-unit.xml
+      - name: Upload coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-unit
+          path: reports/
+
+  contract:
+    name: Contract Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Run contract tests
+        run: |
+          python -m pytest tests/contract/ \
+            -v --strict-markers \
+            --junitxml=reports/junit-contract.xml
+      - name: Upload contract test results
+        uses: actions/upload-artifact@v4
+        with:
+          name: contract-results
+          path: reports/
+
+  integration:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Run integration tests
+        run: |
+          python -m pytest tests/integration/ \
+            -v --junitxml=reports/junit-integration.xml \
+            -x --timeout=60
+      - name: Upload integration test results
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-results
+          path: reports/
+
+  smoke:
+    name: Smoke Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Run smoke tests
+        run: |
+          python -m pytest tests/e2e/ \
+            -v --timeout=30 \
+            -k "test_health or test_evaluate_senior or test_evaluate_junior or test_list_prompts"
+
+  security:
+    name: Security Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Run security tests
+        run: |
+          python -m pytest tests/security/ \
+            -v --junitxml=reports/junit-security.xml
+      - name: Upload security test results
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-results
+          path: reports/

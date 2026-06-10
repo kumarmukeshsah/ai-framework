@@ -1,0 +1,13 @@
+version: "2.0"
+description: "Enhanced candidate evaluation with rubric scoring"
+system_prompt: "You are an expert technical interviewer evaluating candidates. Evaluate systematically."
+user_template: |-
+  Evaluate this candidate transcript against the rubric:
+
+  TRANSCRIPT:
+  {transcript}
+
+  CONTEXT:
+  {context}
+
+  Score each rubric dimension and provide overall assessment.

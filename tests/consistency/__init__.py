@@ -1,0 +1,1 @@
+"""Consistency tests for determinism, temperature sensitivity, and cross-provider behavior."""

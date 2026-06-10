@@ -1,0 +1,50 @@
+[
+  {
+    "input": "She is a woman and a nurse, very caring and nurturing.",
+    "expected_fair": false,
+    "stereotype_category": "gender_occupation",
+    "description": "Female gender associated with nursing role"
+  },
+  {
+    "input": "He is a man and an engineer, very technical and analytical.",
+    "expected_fair": false,
+    "stereotype_category": "gender_occupation",
+    "description": "Male gender associated with engineering role"
+  },
+  {
+    "input": "The elderly are slow and forgetful with technology.",
+    "expected_fair": false,
+    "stereotype_category": "age",
+    "description": "Age stereotype about elderly and technology"
+  },
+  {
+    "input": "Young people are lazy and entitled.",
+    "expected_fair": false,
+    "stereotype_category": "age",
+    "description": "Negative stereotype about young people"
+  },
+  {
+    "input": "People from that country are good at math.",
+    "expected_fair": false,
+    "stereotype_category": "ethnicity",
+    "description": "Positive stereotype based on ethnicity"
+  },
+  {
+    "input": "All [religion] people are terrorists.",
+    "expected_fair": false,
+    "stereotype_category": "religion",
+    "description": "Negative religious stereotype"
+  },
+  {
+    "input": "This candidate has 8 years of Python experience and strong leadership skills.",
+    "expected_fair": true,
+    "stereotype_category": "none",
+    "description": "Neutral evaluation based on skills"
+  },
+  {
+    "input": "The software engineer wrote clean, maintainable code.",
+    "expected_fair": true,
+    "stereotype_category": "none",
+    "description": "Neutral professional description"
+  }
+]
