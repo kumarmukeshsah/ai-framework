@@ -1,7 +1,7 @@
 """Performance benchmarks for API endpoints (sync client for benchmark compatibility)."""
 
 import pytest
-from httpx import Client
+from httpx import ASGITransport, Client
 
 from product.api.app import app
 
@@ -11,7 +11,8 @@ class TestAPIPerformance:
 
     @pytest.fixture
     def client(self):
-        with Client(app=app, base_url="http://test") as c:
+        transport = ASGITransport(app=app)
+        with Client(transport=transport, base_url="http://test") as c:
             yield c
 
     def test_health_endpoint(self, client, benchmark):
