@@ -90,6 +90,7 @@ jobs:
           pip install pytest-benchmark
       - name: Run benchmarks
         run: |
+          mkdir -p reports
           python -m pytest tests/performance/ \
             -v --benchmark-json=reports/benchmark-results.json \
             --benchmark-min-rounds=5 \
@@ -117,9 +118,9 @@ jobs:
         run: |
           python -c "
           import asyncio, sys
-          from product.agents.interview_agent import InterviewAgent
+          from product.agents.evaluator import EvaluatorAgent
           from evaluation.runners.dataset_runner import DatasetRunner
-          agent = InterviewAgent()
+          agent = EvaluatorAgent()
           runner = DatasetRunner(agent, threshold=0.7)
           report = asyncio.run(runner.run_dataset('evaluation/datasets/golden_dataset.json'))
           runner.save_report(report, 'evaluation/reports/release_report.json')
