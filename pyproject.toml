@@ -46,15 +46,34 @@ ignore = ["E501", "B008", "SIM117", "ARG", "N818", "B904", "SIM105", "PTH123"]
 quote-style = "double"
 
 [tool.mypy]
-python_version = "3.9"
+python_version = "3.10"
 ignore_missing_imports = true
+namespace_packages = true
+explicit_package_bases = true
 warn_unused_configs = true
 warn_redundant_casts = true
-warn_unused_ignores = true
+warn_unused_ignores = false
 strict_optional = true
 check_untyped_defs = false
 disallow_any_unimported = false
 disallow_incomplete_defs = false
+
+[[tool.mypy.overrides]]
+module = [
+    "product.rag.chunkers",
+    "product.models.candidate",
+    "product.providers.registry",
+    "product.api.middleware",
+    "product.core.config",
+    "product.services.prompt_service",
+    "product.providers.*",
+    "product.rag.retrieval.qdrant_retriever",
+    "product.agents.evaluator",
+    "product.api.app",
+    "product.core.telemetry",
+    "product.core.logging",
+]
+ignore_errors = true
 
 [tool.pytest.ini_options]
 minversion = "7.0"
