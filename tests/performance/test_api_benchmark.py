@@ -1,52 +1,44 @@
-"""Performance benchmarks for API endpoints."""
+"""Performance benchmarks for API endpoints (sync client for benchmark compatibility)."""
 
 import pytest
-from httpx import ASGITransport, AsyncClient
+from httpx import Client
 
 from product.api.app import app
 
 
-@pytest.mark.asyncio
 class TestAPIPerformance:
     """Performance benchmarks for API endpoints."""
 
     @pytest.fixture
-    async def client(self):
-        transport = ASGITransport(app=app)
-        async with AsyncClient(transport=transport, base_url="http://test") as ac:
-            yield ac
+    def client(self):
+        with Client(app=app, base_url="http://test") as c:
+            yield c
 
-    async def test_health_endpoint(self, client, benchmark):
+    def test_health_endpoint(self, client, benchmark):
         """Benchmark health check endpoint."""
-
-        async def run():
-            response = await client.get("/health")
-            return response
-
-        result = benchmark(run)
+        result = benchmark(client.get, "/health")
         assert result.status_code == 200
 
-    async def test_evaluate_endpoint(self, client, benchmark):
+    def test_evaluate_endpoint(self, client, benchmark):
         """Benchmark evaluate endpoint."""
 
-        async def run():
-            response = await client.post(
+        def run():
+            return client.post(
                 "/evaluate",
                 json={
                     "transcript": "I have 5 years of experience with Python and FastAPI.",
                     "use_llm": False,
                 },
             )
-            return response
 
         result = benchmark(run)
         assert result.status_code == 200
 
-    async def test_evaluate_senior_endpoint(self, client, benchmark):
+    def test_evaluate_senior_endpoint(self, client, benchmark):
         """Benchmark senior candidate evaluation."""
 
-        async def run():
-            response = await client.post(
+        def run():
+            return client.post(
                 "/evaluate",
                 json={
                     "transcript": (
@@ -58,27 +50,16 @@ class TestAPIPerformance:
                     "use_llm": False,
                 },
             )
-            return response
 
         result = benchmark(run)
         assert result.status_code == 200
 
-    async def test_prompts_list_endpoint(self, client, benchmark):
+    def test_prompts_list_endpoint(self, client, benchmark):
         """Benchmark prompts listing endpoint."""
-
-        async def run():
-            response = await client.get("/prompts")
-            return response
-
-        result = benchmark(run)
+        result = benchmark(client.get, "/prompts")
         assert result.status_code == 200
 
-    async def test_root_endpoint(self, client, benchmark):
+    def test_root_endpoint(self, client, benchmark):
         """Benchmark root endpoint."""
-
-        async def run():
-            response = await client.get("/")
-            return response
-
-        result = benchmark(run)
+        result = benchmark(client.get, "/")
         assert result.status_code == 200
