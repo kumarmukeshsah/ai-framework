@@ -1,11 +1,12 @@
 """Unit tests for providers."""
+
 import pytest
 
+from product.core.errors import InvalidProviderError
 from product.providers.anthropic import AnthropicProvider
-from product.providers.base import LLMProvider, Message
-from product.providers.registry import ProviderFactory
+from product.providers.base import Message
 from product.providers.openai import OpenAIProvider
-from product.core.errors import InvalidProviderError, ProviderInitializationError
+from product.providers.registry import ProviderFactory
 
 
 class TestProviderFactory:

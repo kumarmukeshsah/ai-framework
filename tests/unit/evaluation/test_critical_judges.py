@@ -6,17 +6,18 @@ These judges fill gaps identified in the framework analysis:
 - SafetyJudge: detects toxic/harmful content
 - FairnessJudge: detects demographic bias
 """
+
 from __future__ import annotations
 
 import pytest
 
+from evaluation.judges.fairness_judge import FairnessJudge
 from evaluation.judges.hallucination_judge import HallucinationJudge
 from evaluation.judges.safety_judge import SafetyJudge
-from evaluation.judges.fairness_judge import FairnessJudge
 from evaluation.metrics.groundedness import GroundednessMetric
 
-
 # ── HallucinationJudge tests ─────────────────────────────────────────────
+
 
 class TestHallucinationJudge:
     """Tests for the HallucinationJudge."""
@@ -94,6 +95,7 @@ class TestHallucinationJudge:
 
 # ── GroundednessMetric tests ─────────────────────────────────────────────
 
+
 class TestGroundednessMetric:
     """Tests for the GroundednessMetric (RAG faithfulness)."""
 
@@ -151,6 +153,7 @@ class TestGroundednessMetric:
 
 
 # ── SafetyJudge tests ────────────────────────────────────────────────────
+
 
 class TestSafetyJudge:
     """Tests for the SafetyJudge."""
@@ -236,6 +239,7 @@ class TestSafetyJudge:
 
 # ── FairnessJudge tests ──────────────────────────────────────────────────
 
+
 class TestFairnessJudge:
     """Tests for the FairnessJudge."""
 
@@ -279,7 +283,5 @@ class TestFairnessJudge:
         )
         assert result.score < 1.0
         assert any(
-            s.get("group_category") == "age"
-            for s in result.metadata["stereotypes_detected"]
+            s.get("group_category") == "age" for s in result.metadata["stereotypes_detected"]
         )
-

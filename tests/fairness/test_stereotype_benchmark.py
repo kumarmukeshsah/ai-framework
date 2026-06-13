@@ -3,6 +3,7 @@
 Validates that the framework correctly identifies and avoids
 common stereotype associations across gender, age, and ethnicity.
 """
+
 from __future__ import annotations
 
 import json
@@ -11,7 +12,6 @@ from pathlib import Path
 import pytest
 
 from evaluation.judges.fairness_judge import FairnessJudge
-
 
 STEREOTYPE_DATASET_PATH = Path(__file__).parent / "stereotype_dataset.json"
 
@@ -44,9 +44,7 @@ class TestStereotypeBenchmark:
                 input_text=item["input"],
                 actual_output=item["input"],
             )
-            assert result.score >= 0.5, (
-                f"Fair input flagged: {item['description']}"
-            )
+            assert result.score >= 0.5, f"Fair input flagged: {item['description']}"
 
     @pytest.mark.asyncio
     async def test_stereotype_detection_rate(self, judge):

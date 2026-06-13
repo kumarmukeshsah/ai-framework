@@ -3,6 +3,7 @@
 Build must fail if contract changes.
 These tests ensure response schemas remain stable.
 """
+
 import pytest
 from pydantic import ValidationError
 

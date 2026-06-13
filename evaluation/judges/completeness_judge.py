@@ -1,4 +1,5 @@
 """Completeness judge - evaluates output completeness."""
+
 from __future__ import annotations
 
 from typing import Any
@@ -55,7 +56,8 @@ class CompletenessJudge(BaseJudge):
             expected_sentences = [s.strip() for s in expected_lower.split(".") if s.strip()]
             if expected_sentences:
                 sentences_covered = sum(
-                    1 for sentence in expected_sentences
+                    1
+                    for sentence in expected_sentences
                     if any(word in actual_lower for word in sentence.split() if len(word) > 3)
                 )
                 coverage_score = sentences_covered / len(expected_sentences)
@@ -70,9 +72,10 @@ class CompletenessJudge(BaseJudge):
             f"Coverage: {coverage_score:.2f}"
         )
 
-        feedback = "Complete and comprehensive" if final_score >= 0.8 else (
-            "Partially complete" if final_score >= 0.5 else
-            "Incomplete"
+        feedback = (
+            "Complete and comprehensive"
+            if final_score >= 0.8
+            else ("Partially complete" if final_score >= 0.5 else "Incomplete")
         )
 
         return JudgeResult(

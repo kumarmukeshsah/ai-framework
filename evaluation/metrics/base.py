@@ -1,4 +1,5 @@
 """Base metric for evaluation metrics."""
+
 from __future__ import annotations
 
 from abc import ABC, abstractmethod

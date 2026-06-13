@@ -1,7 +1,9 @@
 """Unit tests for the prompt service."""
+
 import pytest
-from product.services.prompt_service import PromptManager
+
 from product.core.errors import PromptNotFoundError, PromptRenderError
+from product.services.prompt_service import PromptManager
 
 
 class TestPromptManager:

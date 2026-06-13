@@ -5,11 +5,12 @@ under the ``/api`` prefix and expect slightly different response shapes than
 the canonical v1 router. This module provides the compatibility shim so
 both the canonical and the test-expected responses work.
 """
+
 from __future__ import annotations
 
 import time
 import uuid
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
@@ -27,13 +28,13 @@ router = APIRouter()
 
 class ApiEvaluationRequest(BaseModel):
     transcript: str = Field(..., min_length=1)
-    context: Optional[str] = None
+    context: str | None = None
     use_llm: bool = False
 
 
 class ApiChatRequest(BaseModel):
     message: str = Field(..., min_length=1)
-    conversation_id: Optional[str] = None
+    conversation_id: str | None = None
     use_llm: bool = False
 
 
@@ -59,7 +60,7 @@ class _MetricsStore:
         if evaluation:
             self.evaluations_processed += 1
 
-    def snapshot(self) -> Dict[str, Any]:
+    def snapshot(self) -> dict[str, Any]:
         avg = self.total_response_time_ms / self.requests_count if self.requests_count else 0.0
         return {
             "evaluations_processed": self.evaluations_processed,
@@ -79,7 +80,7 @@ def get_metrics_store() -> _MetricsStore:
 
 
 @router.get("/health")
-async def api_health(settings: Settings = Depends(get_settings)) -> Dict[str, Any]:
+async def api_health(settings: Settings = Depends(get_settings)) -> dict[str, Any]:
     """Compatibility health endpoint returning the same shape as ``/health``."""
     return {
         "status": "healthy",
@@ -95,7 +96,7 @@ async def api_evaluate(
     request: ApiEvaluationRequest,
     settings: Settings = Depends(get_settings),
     metrics: _MetricsStore = Depends(get_metrics_store),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Compatibility evaluation endpoint.
 
     Runs the rule-based evaluator (or echoes a structured payload if LLM
@@ -145,7 +146,7 @@ async def api_evaluate(
 async def api_chat(
     request: ApiChatRequest,
     settings: Settings = Depends(get_settings),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Compatibility chat endpoint (uses ``reply`` key, not ``response``)."""
     from product.agents.evaluator import EvaluatorAgent
     from product.providers.registry import ProviderRegistry
@@ -178,7 +179,7 @@ async def api_chat(
 
 
 @router.post("/index")
-async def api_index(request: ApiIndexRequest) -> Dict[str, Any]:
+async def api_index(request: ApiIndexRequest) -> dict[str, Any]:
     """Compatibility document-indexing endpoint."""
     from product.rag.chunkers import DocumentChunker
 
@@ -192,6 +193,6 @@ async def api_index(request: ApiIndexRequest) -> Dict[str, Any]:
 
 
 @router.get("/metrics")
-async def api_metrics(metrics: _MetricsStore = Depends(get_metrics_store)) -> Dict[str, Any]:
+async def api_metrics(metrics: _MetricsStore = Depends(get_metrics_store)) -> dict[str, Any]:
     """Compatibility JSON metrics endpoint."""
     return metrics.snapshot()

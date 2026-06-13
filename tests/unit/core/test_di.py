@@ -1,14 +1,13 @@
 """Tests for core.di module."""
-from __future__ import annotations
 
-from typing import Optional
+from __future__ import annotations
 
 import pytest
 
 from product.core.di import Container, inject, provider
 
-
 # ── Fixtures ───────────────────────────────────────────────────────────────
+
 
 class _Engine:
     def __init__(self, name: str = "default") -> None:
@@ -21,6 +20,7 @@ class _Database:
 
 
 # ── Tests ──────────────────────────────────────────────────────────────────
+
 
 class TestContainer:
     def test_register_and_resolve(self) -> None:
@@ -124,7 +124,7 @@ class TestInjectDecorator:
         c.singleton(str, instance="hello")
 
         @inject(c)
-        def target(a: int, b: str, c: Optional[str] = None) -> str:
+        def target(a: int, b: str, c: str | None = None) -> str:
             return f"{a} {b}"
 
         assert target() == "10 hello"

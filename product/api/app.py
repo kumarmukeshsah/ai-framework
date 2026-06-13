@@ -1,4 +1,5 @@
 """FastAPI application factory for the AI Platform."""
+
 from __future__ import annotations
 
 import time
@@ -88,7 +89,9 @@ def create_app() -> FastAPI:
 
     # ── Exception handler ─────────────────────────────────────────────────
     @app.exception_handler(FrameworkException)
-    async def framework_exception_handler(request: Request, exc: FrameworkException) -> JSONResponse:
+    async def framework_exception_handler(
+        request: Request, exc: FrameworkException
+    ) -> JSONResponse:
         logger.error(f"Framework error: {exc.message}", exc_info=exc.cause)
         return JSONResponse(
             status_code=exc.http_status,

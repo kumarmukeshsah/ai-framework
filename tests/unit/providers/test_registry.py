@@ -1,11 +1,12 @@
 """Tests for the provider registry."""
+
 from __future__ import annotations
 
 import pytest
 
 from product.core.errors import ProviderNotFoundError
+from product.providers.base import EmbeddingResponse, LLMProvider, LLMResponse
 from product.providers.registry import ProviderRegistry, register_provider
-from product.providers.base import LLMProvider, Message, LLMResponse, EmbeddingResponse
 
 
 class TestProviderRegistry:
@@ -16,13 +17,18 @@ class TestProviderRegistry:
 
     def test_register_and_create(self) -> None:
         """Test manual registration and creation."""
+
         class DummyProvider(LLMProvider):
             provider_name = "dummy"
 
-            async def generate(self, messages, temperature=0.7, max_tokens=None, stop_sequences=None):
+            async def generate(
+                self, messages, temperature=0.7, max_tokens=None, stop_sequences=None
+            ):
                 return LLMResponse(content="ok", model="dummy")
 
-            async def structured_generate(self, messages, response_model, temperature=0.7, max_tokens=None):
+            async def structured_generate(
+                self, messages, response_model, temperature=0.7, max_tokens=None
+            ):
                 return response_model()
 
             async def embeddings(self, texts, model=None):
@@ -84,6 +90,7 @@ class TestRegisterProviderDecorator:
 
     def test_decorator_rejects_non_provider(self) -> None:
         with pytest.raises(TypeError):
+
             @register_provider("bad")  # type: ignore
             class NotAProvider:
                 pass

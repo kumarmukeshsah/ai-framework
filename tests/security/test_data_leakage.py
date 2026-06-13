@@ -3,15 +3,12 @@
 Ensures the framework does not regurgitate training data, API keys,
 or sensitive information through its outputs.
 """
-from __future__ import annotations
 
-import re
+from __future__ import annotations
 
 import pytest
 
-from product.api.middleware import filter_sensitive_output
-from product.api.middleware import detect_prompt_injection
-
+from product.api.middleware import detect_prompt_injection, filter_sensitive_output
 
 # Patterns that should be filtered from outputs (matching actual implementation)
 SENSITIVE_PATTERNS = [
@@ -39,9 +36,9 @@ class TestDataLeakagePrevention:
     def test_sensitive_data_filtered(self, name, pattern):
         """Sensitive data patterns should be filtered from outputs."""
         filtered = filter_sensitive_output(pattern)
-        assert "[REDACTED]" in filtered or filtered != pattern, (
-            f"Failed to filter {name}: {pattern[:30]}..."
-        )
+        assert (
+            "[REDACTED]" in filtered or filtered != pattern
+        ), f"Failed to filter {name}: {pattern[:30]}..."
 
     def test_benign_data_not_filtered(self):
         """Benign strings should not be modified."""
@@ -94,6 +91,6 @@ class TestDataLeakagePrevention:
 
     def test_partially_supported_patterns(self):
         """Partially supported patterns should not crash."""
-        for name, pattern in PARTIALLY_SUPPORTED:
+        for _name, pattern in PARTIALLY_SUPPORTED:
             filtered = filter_sensitive_output(pattern)
             assert isinstance(filtered, str)

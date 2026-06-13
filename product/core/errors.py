@@ -3,9 +3,10 @@
 Base exception -> typed sub-exceptions -> specific errors.
 All exceptions carry a structured error_code for API responses.
 """
+
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Any
 
 
 class FrameworkException(Exception):
@@ -18,8 +19,8 @@ class FrameworkException(Exception):
         self,
         message: str = "",
         *,
-        detail: Optional[Any] = None,
-        cause: Optional[Exception] = None,
+        detail: Any | None = None,
+        cause: Exception | None = None,
     ) -> None:
         super().__init__(message)
         self.message = message

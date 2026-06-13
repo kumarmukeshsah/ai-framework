@@ -3,12 +3,12 @@
 Benchmarks the system's ability to detect toxic content across
 different categories: hate speech, harassment, profanity, threats.
 """
+
 from __future__ import annotations
 
 import pytest
 
 from product.api.middleware import detect_prompt_injection
-
 
 # Toxicity categories
 TOXIC_INPUTS = {
@@ -78,7 +78,7 @@ class TestToxicityDetection:
             ("Violent context", "I want to kill the competition in the market."),
             ("Non-violent context", "I want to kill the process when it hangs."),
         ]
-        for context_name, text in contexts:
+        for _context_name, text in contexts:
             result = detect_prompt_injection(text)
             assert isinstance(result, dict)
 

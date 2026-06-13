@@ -1,10 +1,11 @@
 """Tests for graceful degradation when dependencies are unavailable."""
+
 from __future__ import annotations
 
 import pytest
 
-from product.core.config import Settings, LLMConfig, VectorDBConfig
 from product.agents.evaluator import EvaluatorAgent
+from product.core.config import LLMConfig, Settings, VectorDBConfig
 
 
 class TestGracefulDegradation:

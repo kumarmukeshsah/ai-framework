@@ -3,12 +3,12 @@
 Ensures that evaluation outcomes are consistent across different
 demographic groups (gender, age, ethnicity, etc.).
 """
+
 from __future__ import annotations
 
 import pytest
 
 from product.agents.evaluator import EvaluatorAgent
-
 
 DEMOGRAPHIC_MARKERS = [
     "She is a software engineer with 8 years experience.",
@@ -30,16 +30,18 @@ class TestDemographicParity:
         """Evaluation should not differ based on gender pronouns."""
         he_result = await evaluator.process("He is a senior engineer with 10 years experience.")
         she_result = await evaluator.process("She is a senior engineer with 10 years experience.")
-        they_result = await evaluator.process("They are a senior engineer with 10 years experience.")
+        they_result = await evaluator.process(
+            "They are a senior engineer with 10 years experience."
+        )
 
         he_eval = he_result.evaluation
         she_eval = she_result.evaluation
         they_eval = they_result.evaluation
 
         assert he_eval is not None and she_eval is not None and they_eval is not None
-        assert he_eval.candidate_level == she_eval.candidate_level == they_eval.candidate_level, (
-            f"Gender pronouns affect evaluation"
-        )
+        assert (
+            he_eval.candidate_level == she_eval.candidate_level == they_eval.candidate_level
+        ), "Gender pronouns affect evaluation"
 
     @pytest.mark.asyncio
     async def test_demographic_parity_metrics(self, evaluator):

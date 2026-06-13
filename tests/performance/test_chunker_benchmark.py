@@ -1,4 +1,5 @@
 """Performance benchmarks for text chunker."""
+
 import pytest
 
 from product.rag.chunkers import TextChunker
@@ -25,7 +26,9 @@ class TestChunkerPerformance:
     def test_paragraph_chunk_throughput(self, large_text, benchmark):
         """Benchmark paragraph chunking throughput."""
         chunker = TextChunker(chunk_size=200, chunk_overlap=0, strategy="paragraph")
-        paragraph_text = "\n\n".join([f"This is paragraph {i} with some content." for i in range(100)])
+        paragraph_text = "\n\n".join(
+            [f"This is paragraph {i} with some content." for i in range(100)]
+        )
 
         def run():
             return chunker.chunk(paragraph_text)

@@ -5,11 +5,11 @@ Uses Pydantic Settings with layered loading:
 2. YAML config file (environment-specific)
 3. Environment variables (highest priority)
 """
+
 from __future__ import annotations
 
-import os
 from pathlib import Path
-from typing import Any, ClassVar, Literal, Optional
+from typing import Any, Literal
 
 import yaml
 from pydantic import Field, field_validator
@@ -21,8 +21,8 @@ class LLMConfig(BaseSettings):
 
     provider: Literal["openai", "anthropic", "ollama", "azure_openai", "gemini", "vllm"] = "openai"
     api_key: str = ""
-    api_base: Optional[str] = None
-    api_version: Optional[str] = None
+    api_base: str | None = None
+    api_version: str | None = None
     model: str = "gpt-4o-mini"
     embedding_model: str = "text-embedding-3-small"
     max_tokens: int = 4096
@@ -38,7 +38,7 @@ class VectorDBConfig(BaseSettings):
 
     provider: Literal["qdrant", "pinecone", "weaviate"] = "qdrant"
     url: str = "http://localhost:6333"
-    api_key: Optional[str] = None
+    api_key: str | None = None
     collection: str = "ai_framework"
     embedding_dim: int = 1536
     chunk_size: int = 512
@@ -78,7 +78,7 @@ class ObservabilityConfig(BaseSettings):
     enabled: bool = True
     metrics_port: int = 8001
     enable_trace_export: bool = False
-    trace_endpoint: Optional[str] = None
+    trace_endpoint: str | None = None
     service_name: str = "ai-framework"
     environment: str = "development"
 
@@ -136,7 +136,7 @@ class Settings(BaseSettings):
             raise ValueError("Debug mode is not allowed in production")
         return v
 
-    def load_yaml(self, config_path: Optional[str] = None) -> Settings:
+    def load_yaml(self, config_path: str | None = None) -> Settings:
         """Merge YAML config values into this settings instance.
 
         Args:
@@ -157,7 +157,7 @@ class Settings(BaseSettings):
         for path in candidates:
             p = Path(path)
             if p.exists():
-                with open(p) as f:
+                with p.open() as f:
                     data: dict = yaml.safe_load(f) or {}
                 self._merge_dict(data)
 
@@ -166,7 +166,6 @@ class Settings(BaseSettings):
     def _merge_dict(self, data: dict, prefix: str = "") -> None:
         """Recursively merge a dictionary into the settings."""
         for key, value in data.items():
-            attr_path = f"{prefix}.{key}" if prefix else key
             if isinstance(value, dict) and hasattr(self, key):
                 child = getattr(self, key)
                 if isinstance(child, BaseSettings):

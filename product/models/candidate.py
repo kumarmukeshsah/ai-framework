@@ -1,9 +1,10 @@
 """Candidate evaluation domain models."""
+
 from __future__ import annotations
 
-from typing import Any, ClassVar, Dict, List, Optional, Tuple
+from typing import Any, ClassVar
 
-from pydantic import BaseModel, Field, ValidationError, field_validator
+from pydantic import BaseModel, Field, field_validator
 
 
 class RubricBreakdown(BaseModel):
@@ -51,14 +52,14 @@ class CandidateEvaluationV1(BaseModel):
     Simple, flat schema with equal-weight rubric.
     """
 
-    VALID_LEVELS: ClassVar[Tuple[str, ...]] = ("Junior", "Mid", "Senior")
-    VALID_RECOMMENDATIONS: ClassVar[Tuple[str, ...]] = ("Hire", "Consider", "Reject")
+    VALID_LEVELS: ClassVar[tuple[str, ...]] = ("Junior", "Mid", "Senior")
+    VALID_RECOMMENDATIONS: ClassVar[tuple[str, ...]] = ("Hire", "Consider", "Reject")
 
     candidate_level: str = Field(..., description="Seniority level (Junior, Mid, Senior)")
     score: float = Field(..., ge=0, le=10, description="Overall evaluation score /10")
     recommendation: str = Field(..., description="Hiring recommendation")
-    skills: List[str] = Field(default_factory=list, description="Identified technical skills")
-    experience_years: Optional[float] = Field(default=None, ge=0)
+    skills: list[str] = Field(default_factory=list, description="Identified technical skills")
+    experience_years: float | None = Field(default=None, ge=0)
     feedback: str = Field(default="", description="Detailed evaluation feedback")
 
     @field_validator("candidate_level")
@@ -72,7 +73,9 @@ class CandidateEvaluationV1(BaseModel):
     @classmethod
     def _validate_recommendation(cls, v: str) -> str:
         if v not in cls.VALID_RECOMMENDATIONS:
-            raise ValueError(f"recommendation must be one of {cls.VALID_RECOMMENDATIONS}, got '{v}'")
+            raise ValueError(
+                f"recommendation must be one of {cls.VALID_RECOMMENDATIONS}, got '{v}'"
+            )
         return v
 
 
@@ -82,8 +85,8 @@ class CandidateEvaluationV2(BaseModel):
     Adds rubric_breakdown, strengths/weaknesses, and extended recommendation set.
     """
 
-    VALID_LEVELS: ClassVar[Tuple[str, ...]] = ("Junior", "Mid", "Senior", "Lead")
-    VALID_RECOMMENDATIONS: ClassVar[Tuple[str, ...]] = (
+    VALID_LEVELS: ClassVar[tuple[str, ...]] = ("Junior", "Mid", "Senior", "Lead")
+    VALID_RECOMMENDATIONS: ClassVar[tuple[str, ...]] = (
         "Strong Hire",
         "Hire",
         "Consider",
@@ -93,10 +96,10 @@ class CandidateEvaluationV2(BaseModel):
     candidate_level: str = Field(..., description="Seniority level")
     score: float = Field(..., ge=0, le=10, description="Overall evaluation score /10")
     recommendation: str = Field(..., description="Hiring recommendation")
-    skills: List[str] = Field(default_factory=list)
-    rubric_breakdown: Optional[RubricV2] = None
-    strengths: List[str] = Field(default_factory=list)
-    weaknesses: List[str] = Field(default_factory=list)
+    skills: list[str] = Field(default_factory=list)
+    rubric_breakdown: RubricV2 | None = None
+    strengths: list[str] = Field(default_factory=list)
+    weaknesses: list[str] = Field(default_factory=list)
 
     @field_validator("candidate_level")
     @classmethod
@@ -112,8 +115,8 @@ class CandidateEvaluationV3(BaseModel):
     Final production schema with V3 rubric, chain-of-thought, and full provenance.
     """
 
-    VALID_LEVELS: ClassVar[Tuple[str, ...]] = ("Junior", "Mid", "Senior", "Lead")
-    VALID_RECOMMENDATIONS: ClassVar[Tuple[str, ...]] = (
+    VALID_LEVELS: ClassVar[tuple[str, ...]] = ("Junior", "Mid", "Senior", "Lead")
+    VALID_RECOMMENDATIONS: ClassVar[tuple[str, ...]] = (
         "Strong Hire",
         "Hire",
         "Consider",
@@ -123,13 +126,13 @@ class CandidateEvaluationV3(BaseModel):
     candidate_level: str = Field(..., description="Seniority level")
     score: float = Field(..., ge=0, le=10, description="Overall evaluation score /10")
     recommendation: str = Field(..., description="Hiring recommendation")
-    skills: List[str] = Field(default_factory=list)
-    experience_years: Optional[float] = Field(default=None, ge=0)
+    skills: list[str] = Field(default_factory=list)
+    experience_years: float | None = Field(default=None, ge=0)
     rubric: RubricV3 = Field(default_factory=RubricV3)
     feedback: str = Field(default="", description="Detailed evaluation feedback")
-    strengths: List[str] = Field(default_factory=list)
-    weaknesses: List[str] = Field(default_factory=list)
-    chain_of_thought: Optional[str] = Field(default=None, description="LLM reasoning trace")
+    strengths: list[str] = Field(default_factory=list)
+    weaknesses: list[str] = Field(default_factory=list)
+    chain_of_thought: str | None = Field(default=None, description="LLM reasoning trace")
 
     @field_validator("candidate_level")
     @classmethod
@@ -142,7 +145,9 @@ class CandidateEvaluationV3(BaseModel):
     @classmethod
     def _validate_recommendation(cls, v: str) -> str:
         if v not in cls.VALID_RECOMMENDATIONS:
-            raise ValueError(f"recommendation must be one of {cls.VALID_RECOMMENDATIONS}, got '{v}'")
+            raise ValueError(
+                f"recommendation must be one of {cls.VALID_RECOMMENDATIONS}, got '{v}'"
+            )
         return v
 
 
@@ -152,13 +157,13 @@ class CandidateEvaluation(BaseModel):
     candidate_level: str = Field(..., description="Seniority level (Junior, Mid, Senior, Lead)")
     score: float = Field(..., ge=0, le=10, description="Overall evaluation score /10")
     recommendation: str = Field(..., description="Hiring recommendation (Hire, Consider, Reject)")
-    skills: List[str] = Field(default_factory=list, description="Identified technical skills")
-    experience_years: Optional[float] = Field(default=None, ge=0)
+    skills: list[str] = Field(default_factory=list, description="Identified technical skills")
+    experience_years: float | None = Field(default=None, ge=0)
     rubric: RubricBreakdown = Field(default_factory=RubricBreakdown)
     feedback: str = Field(default="", description="Detailed evaluation feedback")
-    strengths: List[str] = Field(default_factory=list, description="Key strengths")
-    weaknesses: List[str] = Field(default_factory=list, description="Areas for improvement")
-    chain_of_thought: Optional[str] = Field(default=None, description="LLM reasoning trace")
+    strengths: list[str] = Field(default_factory=list, description="Key strengths")
+    weaknesses: list[str] = Field(default_factory=list, description="Areas for improvement")
+    chain_of_thought: str | None = Field(default=None, description="LLM reasoning trace")
 
 
 class EvaluationStageResult(BaseModel):
@@ -166,8 +171,8 @@ class EvaluationStageResult(BaseModel):
 
     stage_name: str
     success: bool
-    data: Dict[str, Any] = Field(default_factory=dict)
-    error: Optional[str] = None
+    data: dict[str, Any] = Field(default_factory=dict)
+    error: str | None = None
 
 
 class EvaluationPipelineResult(BaseModel):
@@ -181,33 +186,33 @@ class EvaluationPipelineResult(BaseModel):
     """
 
     success: bool
-    evaluation: Optional[CandidateEvaluation] = None
-    stages: List[EvaluationStageResult] = Field(default_factory=list)
+    evaluation: CandidateEvaluation | None = None
+    stages: list[EvaluationStageResult] = Field(default_factory=list)
     duration_ms: float = 0.0
-    error: Optional[str] = None
-    prompt_version: Optional[str] = None
+    error: str | None = None
+    prompt_version: str | None = None
 
     # ── Convenience proxies for ergonomic access in tests/agents ──────────
     @property
-    def candidate_level(self) -> Optional[str]:  # type: ignore[override]
+    def candidate_level(self) -> str | None:  # type: ignore[override]
         return self.evaluation.candidate_level if self.evaluation else None
 
     @property
-    def score(self) -> Optional[float]:  # type: ignore[override]
+    def score(self) -> float | None:  # type: ignore[override]
         return self.evaluation.score if self.evaluation else None
 
     @property
-    def recommendation(self) -> Optional[str]:  # type: ignore[override]
+    def recommendation(self) -> str | None:  # type: ignore[override]
         return self.evaluation.recommendation if self.evaluation else None
 
     @property
-    def skills(self) -> List[str]:  # type: ignore[override]
+    def skills(self) -> list[str]:  # type: ignore[override]
         return list(self.evaluation.skills) if self.evaluation else []
 
     @property
-    def strengths(self) -> List[str]:  # type: ignore[override]
+    def strengths(self) -> list[str]:  # type: ignore[override]
         return list(self.evaluation.strengths) if self.evaluation else []
 
     @property
-    def weaknesses(self) -> List[str]:  # type: ignore[override]
+    def weaknesses(self) -> list[str]:  # type: ignore[override]
         return list(self.evaluation.weaknesses) if self.evaluation else []

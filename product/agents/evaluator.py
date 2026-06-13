@@ -7,23 +7,23 @@ Pipeline stages:
 
 Each stage can operate in LLM mode or rule-based mode.
 """
+
 from __future__ import annotations
 
 import re
 import time
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any
 
-from product.core.errors import AgentException
-from product.core.telemetry import track_agent_execution, track_llm_call, span
-from product.providers.base import LLMProvider, Message
 from product.agents.base import BaseAgent
+from product.core.telemetry import span, track_agent_execution
 from product.models.candidate import (
     CandidateEvaluation,
     EvaluationPipelineResult,
     EvaluationStageResult,
     RubricBreakdown,
 )
+from product.providers.base import LLMProvider, Message
 
 
 class EvaluationStage(str, Enum):
@@ -36,13 +36,13 @@ class EvaluationStage(str, Enum):
 
 # ── Keyword-based fallback constants ──────────────────────────────────────
 
-SENIORITY_KEYWORDS: Dict[str, List[str]] = {
+SENIORITY_KEYWORDS: dict[str, list[str]] = {
     "Senior": ["lead", "architect", "8+ years", "10+ years", "mentored", "team lead", "staff"],
     "Mid": ["4-7 years", "experienced", "independent", "contribute", "mid-level"],
     "Junior": ["junior", "0-3 years", "entry", "new", "learning", "fresh", "intern"],
 }
 
-SKILL_PATTERNS: Dict[str, str] = {
+SKILL_PATTERNS: dict[str, str] = {
     "python": r"\bpython\b",
     "typescript": r"\btypescript\b|ts\b(?!\w)",
     "javascript": r"\bjavascript\b|js\b(?!\w)",
@@ -82,7 +82,7 @@ class EvaluatorAgent(BaseAgent):
 
     def __init__(
         self,
-        provider: Optional[LLMProvider] = None,
+        provider: LLMProvider | None = None,
         use_llm: bool = False,
     ) -> None:
         super().__init__(
@@ -93,7 +93,9 @@ class EvaluatorAgent(BaseAgent):
         self._use_llm = use_llm and provider is not None
 
     @track_agent_execution(agent_name="EvaluatorAgent")
-    async def process(self, transcript: str, context: Optional[str] = None) -> EvaluationPipelineResult:
+    async def process(
+        self, transcript: str, context: str | None = None
+    ) -> EvaluationPipelineResult:
         """Run the full evaluation pipeline.
 
         Args:
@@ -104,7 +106,7 @@ class EvaluatorAgent(BaseAgent):
             EvaluationPipelineResult with the full pipeline trace.
         """
         start = time.monotonic()
-        stages: List[EvaluationStageResult] = []
+        stages: list[EvaluationStageResult] = []
 
         try:
             # Stage 1: Parse
@@ -114,9 +116,7 @@ class EvaluatorAgent(BaseAgent):
 
             # Stage 2: Evaluate
             with span("evaluator.evaluate"):
-                eval_result = await self._run_evaluate_stage(
-                    transcript, context, parse_result
-                )
+                eval_result = await self._run_evaluate_stage(transcript, context, parse_result)
                 stages.append(eval_result)
 
             # Stage 3: Report
@@ -143,9 +143,7 @@ class EvaluatorAgent(BaseAgent):
                 duration_ms=round(duration, 1),
             )
 
-    async def _run_parse_stage(
-        self, transcript: str, context: Optional[str]
-    ) -> EvaluationStageResult:
+    async def _run_parse_stage(self, transcript: str, context: str | None) -> EvaluationStageResult:
         try:
             if self._use_llm and self.provider:
                 data = await self._llm_parse(transcript, context)
@@ -153,10 +151,12 @@ class EvaluatorAgent(BaseAgent):
                 data = self._rule_parse(transcript)
             return EvaluationStageResult(stage_name="parse", success=True, data=data)
         except Exception as e:
-            return EvaluationStageResult(stage_name="parse", success=False, data={"transcript": transcript}, error=str(e))
+            return EvaluationStageResult(
+                stage_name="parse", success=False, data={"transcript": transcript}, error=str(e)
+            )
 
     async def _run_evaluate_stage(
-        self, transcript: str, context: Optional[str], parse_result: EvaluationStageResult
+        self, transcript: str, context: str | None, parse_result: EvaluationStageResult
     ) -> EvaluationStageResult:
         try:
             parsed = parse_result.data
@@ -171,7 +171,7 @@ class EvaluatorAgent(BaseAgent):
     async def _run_report_stage(
         self,
         transcript: str,
-        context: Optional[str],
+        context: str | None,
         parse_result: EvaluationStageResult,
         eval_result: EvaluationStageResult,
     ) -> EvaluationStageResult:
@@ -188,7 +188,7 @@ class EvaluatorAgent(BaseAgent):
 
     # ── LLM-powered methods ──────────────────────────────────────────────
 
-    async def _llm_parse(self, transcript: str, context: Optional[str]) -> Dict[str, Any]:
+    async def _llm_parse(self, transcript: str, context: str | None) -> dict[str, Any]:
         prompt = f"""Extract structured information from this interview transcript:
 
 TRANSCRIPT:
@@ -204,12 +204,13 @@ Return a JSON object with:
 """
         msgs = [Message(role="user", content=prompt)]
         import json
+
         result = await self.provider.generate(msgs, temperature=0.1)  # type: ignore[union-attr]
         return json.loads(result.content)
 
     async def _llm_evaluate(
-        self, transcript: str, parsed: Dict[str, Any], context: Optional[str]
-    ) -> Dict[str, Any]:
+        self, transcript: str, parsed: dict[str, Any], context: str | None
+    ) -> dict[str, Any]:
         prompt = f"""Evaluate this candidate based on the transcript and parsed data.
 
 TRANSCRIPT:
@@ -230,11 +231,12 @@ Return a JSON object with:
 """
         msgs = [Message(role="user", content=prompt)]
         import json
+
         result = await self.provider.generate(msgs, temperature=0.2)  # type: ignore[union-attr]
         return json.loads(result.content)
 
     async def _llm_report(
-        self, transcript: str, eval_data: Dict[str, Any], context: Optional[str]
+        self, transcript: str, eval_data: dict[str, Any], context: str | None
     ) -> CandidateEvaluation:
         return CandidateEvaluation(
             candidate_level=eval_data.get("level", "Mid"),
@@ -250,7 +252,7 @@ Return a JSON object with:
 
     # ── Rule-based methods ───────────────────────────────────────────────
 
-    def _rule_parse(self, transcript: str) -> Dict[str, Any]:
+    def _rule_parse(self, transcript: str) -> dict[str, Any]:
         lower = transcript.lower()
         keywords_matched = self._extract_keywords(lower)
         skills = self._identify_skills(keywords_matched)
@@ -264,13 +266,15 @@ Return a JSON object with:
             "seniority_hints": seniority_hints,
         }
 
-    def _rule_evaluate(self, parsed: Dict[str, Any]) -> Dict[str, Any]:
+    def _rule_evaluate(self, parsed: dict[str, Any]) -> dict[str, Any]:
         skills = parsed.get("skills", [])
         level = self._determine_level(parsed.get("seniority_hints", []))
 
         rubric = RubricBreakdown(
             technical_depth=min(3.0, len(skills) * 0.4),
-            problem_solving=2.0 if "lead" in str(parsed.get("seniority_hints", [])).lower() else 1.5,
+            problem_solving=(
+                2.0 if "lead" in str(parsed.get("seniority_hints", [])).lower() else 1.5
+            ),
             communication=1.5,
             experience_relevance=min(2.0, (parsed.get("experience_years") or 0) / 5.0),
         )
@@ -288,7 +292,7 @@ Return a JSON object with:
             "reasoning": f"Rule-based evaluation: {len(skills)} skills, level={level}, score={score:.1f}",
         }
 
-    def _rule_report(self, eval_data: Dict[str, Any]) -> CandidateEvaluation:
+    def _rule_report(self, eval_data: dict[str, Any]) -> CandidateEvaluation:
         score = eval_data.get("score", 5.0)
         level = eval_data.get("level", "Mid")
         strengths = eval_data.get("strengths", [])
@@ -316,7 +320,7 @@ Return a JSON object with:
 
     # ── Helpers ──────────────────────────────────────────────────────────
 
-    def _extract_keywords(self, text: str) -> List[str]:
+    def _extract_keywords(self, text: str) -> list[str]:
         """Extract recognised skill keywords plus a structured years-of-experience token.
 
         Adds an ``"{N}_years_experience"`` token to the returned list when an
@@ -324,7 +328,7 @@ Return a JSON object with:
         is found in *text*. This makes years-of-experience first-class so callers
         (and tests) can match on ``"<N>_years_experience"``.
         """
-        keywords: List[str] = []
+        keywords: list[str] = []
         for name, pattern in SKILL_PATTERNS.items():
             if re.search(pattern, text):
                 keywords.append(name)
@@ -334,24 +338,24 @@ Return a JSON object with:
             keywords.append(f"{years_match.group(1)}_years_experience")
         return keywords
 
-    def _identify_skills(self, keywords: List[str]) -> List[str]:
+    def _identify_skills(self, keywords: list[str]) -> list[str]:
         return [kw.title() for kw in keywords if kw in SKILL_PATTERNS]
 
-    def _extract_years(self, text: str) -> Optional[float]:
+    def _extract_years(self, text: str) -> float | None:
         match = re.search(r"(\d+)\+?\s*(?:years?|yrs?)", text)
         if match:
             return float(match.group(1))
         return None
 
-    def _find_seniority_hints(self, text: str) -> List[str]:
+    def _find_seniority_hints(self, text: str) -> list[str]:
         hints = []
-        for level, keywords in SENIORITY_KEYWORDS.items():
+        for _level, keywords in SENIORITY_KEYWORDS.items():
             for kw in keywords:
                 if kw in text:
                     hints.append(kw)
         return hints
 
-    def _determine_level(self, hints: List[str]) -> str:
+    def _determine_level(self, hints: list[str]) -> str:
         scores = {"Junior": 0, "Mid": 0, "Senior": 0}
         for hint in hints:
             for level, keywords in SENIORITY_KEYWORDS.items():
@@ -360,7 +364,12 @@ Return a JSON object with:
         return max(scores, key=scores.get)  # type: ignore[return-value]
 
     def _calculate_score(self, rubric: RubricBreakdown, level: str) -> float:
-        base = rubric.technical_depth + rubric.problem_solving + rubric.communication + rubric.experience_relevance
+        base = (
+            rubric.technical_depth
+            + rubric.problem_solving
+            + rubric.communication
+            + rubric.experience_relevance
+        )
         if level == "Senior":
             base += 2.0
         elif level == "Mid":

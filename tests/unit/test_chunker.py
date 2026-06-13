@@ -1,5 +1,5 @@
 """Unit tests for text chunker."""
-import pytest
+
 from product.rag.chunkers import TextChunker
 
 
@@ -61,4 +61,4 @@ class TestTextChunker:
         """Test merging chunks."""
         chunker = TextChunker()
         merged = chunker.merge_chunks(["First", "Second", "Third"])
-        assert "First\n\nSecond\n\nThird" == merged
+        assert merged == "First\n\nSecond\n\nThird"

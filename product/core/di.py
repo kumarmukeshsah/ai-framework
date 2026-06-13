@@ -15,17 +15,13 @@ Usage::
     async def handle(llm: LLMProvider, settings: Settings) -> None:
         ...
 """
+
 from __future__ import annotations
 
 import inspect
 from typing import (
     Any,
     Callable,
-    Dict,
-    List,
-    Optional,
-    Tuple,
-    Type,
     TypeVar,
     get_type_hints,
 )
@@ -55,16 +51,16 @@ class Container:
         assert c.resolve(int) == 42
     """
 
-    def __init__(self, parent: Optional[Container] = None) -> None:
-        self._registrations: Dict[Type, _Registration] = {}
+    def __init__(self, parent: Container | None = None) -> None:
+        self._registrations: dict[type, _Registration] = {}
         self._parent = parent
 
     def register(
         self,
-        abstract: Type[T],
+        abstract: type[T],
         *,
-        factory: Optional[Callable[[], T]] = None,
-        concrete: Optional[Type[T]] = None,
+        factory: Callable[[], T] | None = None,
+        concrete: type[T] | None = None,
     ) -> None:
         """Register a type with a factory function or concrete class.
 
@@ -78,10 +74,10 @@ class Container:
 
     def singleton(
         self,
-        abstract: Type[T],
-        instance: Optional[T] = None,
+        abstract: type[T],
+        instance: T | None = None,
         *,
-        factory: Optional[Callable[[], T]] = None,
+        factory: Callable[[], T] | None = None,
     ) -> None:
         """Register a singleton.
 
@@ -97,7 +93,7 @@ class Container:
         else:
             raise ValueError("Provide either 'instance' or 'factory'")
 
-    def resolve(self, abstract: Type[T]) -> T:
+    def resolve(self, abstract: type[T]) -> T:
         """Resolve an instance of *abstract*."""
         reg = self._registrations.get(abstract)
         if reg is None:
@@ -112,7 +108,7 @@ class Container:
 
         return reg.factory()
 
-    def override(self, abstract: Type[T], instance: T) -> None:
+    def override(self, abstract: type[T], instance: T) -> None:
         """Temporarily override a registration (useful in tests)."""
         self._registrations[abstract] = _Registration(lambda: instance, singleton=True)
         self._registrations[abstract].instance = instance
@@ -121,7 +117,7 @@ class Container:
         """Remove all registrations."""
         self._registrations.clear()
 
-    def has(self, abstract: Type[T]) -> bool:
+    def has(self, abstract: type[T]) -> bool:
         """Check if a type is registered (including parent container)."""
         if abstract in self._registrations:
             return True
@@ -143,6 +139,7 @@ def inject(container: Container) -> Callable[[Callable[..., T]], Callable[..., T
         def handle(request: Request, llm: LLMProvider) -> Response:
             ...
     """
+
     def decorator(func: Callable[..., T]) -> Callable[..., T]:
         hints = get_type_hints(func)
         sig = inspect.signature(func)
@@ -172,7 +169,7 @@ def inject(container: Container) -> Callable[[Callable[..., T]], Callable[..., T
     return decorator
 
 
-def provider(container: Container, abstract: Type[T]) -> Callable[[Type[T]], Type[T]]:
+def provider(container: Container, abstract: type[T]) -> Callable[[type[T]], type[T]]:
     """Class decorator that auto-registers the class as a provider.
 
     Usage::
@@ -181,7 +178,8 @@ def provider(container: Container, abstract: Type[T]) -> Callable[[Type[T]], Typ
         class OpenAIProvider(LLMProvider):
             ...
     """
-    def decorator(cls: Type[T]) -> Type[T]:
+
+    def decorator(cls: type[T]) -> type[T]:
         container.register(abstract, concrete=cls)
         return cls
 

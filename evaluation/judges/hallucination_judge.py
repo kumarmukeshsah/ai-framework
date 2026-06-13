@@ -15,13 +15,13 @@ This implementation uses heuristic-based claim extraction and overlap scoring
 suitable for CI/CD pipelines. In production, this can be augmented with an
 LLM-as-judge pass or a specialized model like HHEM or FActScore.
 """
+
 from __future__ import annotations
 
 import re
 from typing import Any
 
 from .base import BaseJudge, JudgeResult
-
 
 # Claim boundary patterns - sentences containing verifiable factual claims
 _CLAIM_SPLIT_PATTERN = re.compile(
@@ -32,15 +32,37 @@ _CLAIM_SPLIT_PATTERN = re.compile(
 
 # Hedging / uncertainty markers - claims with these are treated as "soft" claims
 _HEDGING_MARKERS = [
-    "may", "might", "could", "possibly", "perhaps", "probably",
-    "likely", "appears to", "seems to", "suggests", "indicates",
-    "i think", "i believe", "in my opinion",
+    "may",
+    "might",
+    "could",
+    "possibly",
+    "perhaps",
+    "probably",
+    "likely",
+    "appears to",
+    "seems to",
+    "suggests",
+    "indicates",
+    "i think",
+    "i believe",
+    "in my opinion",
 ]
 
 # Strong assertion markers - these signal definite claims that need grounding
 _ASSERTION_MARKERS = [
-    "is", "are", "was", "were", "has", "have", "had",
-    "will", "must", "definitely", "certainly", "always", "never",
+    "is",
+    "are",
+    "was",
+    "were",
+    "has",
+    "have",
+    "had",
+    "will",
+    "must",
+    "definitely",
+    "certainly",
+    "always",
+    "never",
 ]
 
 
@@ -85,15 +107,43 @@ def _claim_grounded(claim: str, sources: list[str]) -> tuple[bool, float]:
     claim_lower = claim.lower()
     # Extract key terms: words longer than 3 chars, excluding common stopwords
     stopwords = {
-        "the", "and", "for", "are", "but", "not", "you", "all", "can",
-        "her", "was", "one", "our", "had", "has", "this", "that", "with",
-        "from", "they", "have", "been", "their", "than", "such", "also",
-        "into", "more", "some", "these", "would", "could", "should", "about",
+        "the",
+        "and",
+        "for",
+        "are",
+        "but",
+        "not",
+        "you",
+        "all",
+        "can",
+        "her",
+        "was",
+        "one",
+        "our",
+        "had",
+        "has",
+        "this",
+        "that",
+        "with",
+        "from",
+        "they",
+        "have",
+        "been",
+        "their",
+        "than",
+        "such",
+        "also",
+        "into",
+        "more",
+        "some",
+        "these",
+        "would",
+        "could",
+        "should",
+        "about",
     }
     key_terms = [
-        w.strip(".,;:!?()[]\"'")
-        for w in claim_lower.split()
-        if len(w) > 3 and w not in stopwords
+        w.strip(".,;:!?()[]\"'") for w in claim_lower.split() if len(w) > 3 and w not in stopwords
     ]
     if not key_terms:
         return True, 1.0  # Nothing to verify
@@ -209,10 +259,12 @@ class HallucinationJudge(BaseJudge):
             if is_grounded:
                 grounded_count += 1
             else:
-                hallucinated.append({
-                    "claim": claim,
-                    "coverage": round(coverage, 3),
-                })
+                hallucinated.append(
+                    {
+                        "claim": claim,
+                        "coverage": round(coverage, 3),
+                    }
+                )
 
         total_verifiable = len(claims) - len(soft_claims) + len(soft_claims)
         # Groundedness ratio (1.0 = all claims grounded)

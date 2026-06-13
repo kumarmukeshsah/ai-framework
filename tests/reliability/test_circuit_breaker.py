@@ -3,9 +3,8 @@
 Ensures that repeated failures trigger circuit breaker logic,
 preventing cascading failures and allowing recovery.
 """
-from __future__ import annotations
 
-import pytest
+from __future__ import annotations
 
 from product.core.config import LLMConfig
 

@@ -1,12 +1,11 @@
 """Base retriever abstraction for RAG."""
+
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Any, Optional
+from typing import Any
 
 from pydantic import BaseModel, Field
-
-from product.core.errors import RetrievalError
 
 
 class RetrievedDocument(BaseModel):
@@ -35,24 +34,20 @@ class BaseRetriever(ABC):
         self,
         query: str,
         top_k: int = 5,
-        filters: Optional[dict[str, Any]] = None,
-        score_threshold: Optional[float] = None,
-    ) -> RetrievalResult:
-        ...
+        filters: dict[str, Any] | None = None,
+        score_threshold: float | None = None,
+    ) -> RetrievalResult: ...
 
     @abstractmethod
     async def index_document(
         self,
         document_id: str,
         content: str,
-        metadata: Optional[dict[str, Any]] = None,
-    ) -> bool:
-        ...
+        metadata: dict[str, Any] | None = None,
+    ) -> bool: ...
 
     @abstractmethod
-    async def delete_document(self, document_id: str) -> bool:
-        ...
+    async def delete_document(self, document_id: str) -> bool: ...
 
     @abstractmethod
-    async def health_check(self) -> bool:
-        ...
+    async def health_check(self) -> bool: ...

@@ -3,6 +3,7 @@
 Monitors whether LLM output distribution changes over time,
 which could indicate model degradation, data drift, or prompt issues.
 """
+
 from __future__ import annotations
 
 import pytest
@@ -66,4 +67,6 @@ class TestOutputDrift:
 
         if j_level and s_level:
             scores = {"Junior": 1, "Mid": 2, "Senior": 3}
-            assert scores.get(s_level, 0) >= scores.get(j_level, 0), "Regression: senior scored lower"
+            assert scores.get(s_level, 0) >= scores.get(
+                j_level, 0
+            ), "Regression: senior scored lower"

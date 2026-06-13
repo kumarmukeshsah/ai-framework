@@ -1,10 +1,11 @@
 """Unit tests for the EvaluatorAgent."""
+
 import pytest
+
 from product.agents.evaluator import EvaluatorAgent
 from product.models.candidate import (
     CandidateEvaluation,
     EvaluationPipelineResult,
-    EvaluationStageResult,
     RubricBreakdown,
 )
 
@@ -56,7 +57,7 @@ class TestEvaluatorAgent:
         """Test processing with job context."""
         result = await agent.process(
             "I have 5 years of experience with Python.",
-            context="Senior Python Developer position requiring 5+ years"
+            context="Senior Python Developer position requiring 5+ years",
         )
         assert isinstance(result, EvaluationPipelineResult)
         assert result.evaluation is not None
@@ -90,7 +91,9 @@ class TestEvaluatorAgent:
 
     def test_calculate_score(self, agent):
         """Test score calculation."""
-        rubric = RubricBreakdown(technical_depth=2, problem_solving=2, communication=1, experience_relevance=1)
+        rubric = RubricBreakdown(
+            technical_depth=2, problem_solving=2, communication=1, experience_relevance=1
+        )
         score = agent._calculate_score(rubric, "Senior")
         assert 0 <= score <= 10
 

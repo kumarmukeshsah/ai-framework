@@ -1,7 +1,5 @@
 """Unit tests for models."""
-import pytest
 
-from product.models.candidate import CandidateEvaluation
 from product.api.schemas import (
     ChatRequest,
     ChatResponse,
@@ -9,8 +7,8 @@ from product.api.schemas import (
     EvaluationResponse,
     HealthResponse,
     IndexRequest,
-    IndexResponse,
 )
+from product.models.candidate import CandidateEvaluation
 
 
 class TestCandidateEvaluation:

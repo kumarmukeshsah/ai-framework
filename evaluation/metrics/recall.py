@@ -1,4 +1,5 @@
 """Recall@k metric for retrieval evaluation."""
+
 from __future__ import annotations
 
 from typing import Any

@@ -1,4 +1,5 @@
 """Tests for core.config module."""
+
 from __future__ import annotations
 
 import os
@@ -9,10 +10,10 @@ import pytest
 from pydantic import ValidationError
 
 from product.core.config import (
-    Settings,
-    LLMConfig,
     APIConfig,
+    LLMConfig,
     SecurityConfig,
+    Settings,
     get_settings,
 )
 
@@ -26,7 +27,9 @@ class TestLLMConfig:
         assert config.temperature == 0.7
 
     def test_env_prefix(self) -> None:
-        with patch.dict(os.environ, {"LLM__PROVIDER": "anthropic", "LLM__MODEL": "claude-3-opus-20240229"}):
+        with patch.dict(
+            os.environ, {"LLM__PROVIDER": "anthropic", "LLM__MODEL": "claude-3-opus-20240229"}
+        ):
             config = LLMConfig()
             assert config.provider == "anthropic"
             assert config.model == "claude-3-opus-20240229"

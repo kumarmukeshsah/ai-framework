@@ -1,4 +1,5 @@
 """Evaluation dataset runner for batch execution and reporting."""
+
 from __future__ import annotations
 
 import json
@@ -6,10 +7,9 @@ import time
 from pathlib import Path
 from typing import Any
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 from product.agents.evaluator import EvaluatorAgent
-from product.models.candidate import CandidateEvaluation
 from product.core.logging import get_logger
 
 logger = get_logger(__name__)
@@ -113,7 +113,7 @@ class DatasetRunner:
         dataset_path = Path(dataset_path)
         dataset_name = dataset_path.stem
 
-        with open(dataset_path) as f:
+        with dataset_path.open() as f:
             dataset = json.load(f)
 
         results = []
@@ -217,7 +217,9 @@ class DatasetRunner:
         score = EvaluationScore()
 
         # Level accuracy
-        score.level_accuracy = actual.get("candidate_level", "") == expected.get("candidate_level", "")
+        score.level_accuracy = actual.get("candidate_level", "") == expected.get(
+            "candidate_level", ""
+        )
 
         # Score error (normalized 0-1)
         actual_score = actual.get("score", 0.0)
@@ -225,11 +227,13 @@ class DatasetRunner:
         score.score_error = abs(actual_score - expected_score) / 10.0
 
         # Recommendation match
-        score.recommendation_match = actual.get("recommendation", "") == expected.get("recommendation", "")
+        score.recommendation_match = actual.get("recommendation", "") == expected.get(
+            "recommendation", ""
+        )
 
         # Skill overlap (Jaccard similarity)
-        actual_skills = set(s.lower() for s in actual.get("skills", []))
-        expected_skills = set(s.lower() for s in expected.get("skills", []))
+        actual_skills = {s.lower() for s in actual.get("skills", [])}
+        expected_skills = {s.lower() for s in expected.get("skills", [])}
         if actual_skills or expected_skills:
             intersection = actual_skills & expected_skills
             union = actual_skills | expected_skills
@@ -275,7 +279,7 @@ class DatasetRunner:
             ],
         }
 
-        with open(output_path, "w") as f:
+        with output_path.open("w") as f:
             json.dump(output, f, indent=2)
 
         logger.info(f"Report saved to {output_path}")

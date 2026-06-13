@@ -4,10 +4,11 @@ Provides:
 - ``Tool`` — a callable unit that agents can invoke.
 - ``ToolResult`` — structured result from a tool execution.
 """
+
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Any, Dict, Optional, Type
+from typing import Any
 
 
 class ToolResult:
@@ -17,8 +18,8 @@ class ToolResult:
         self,
         success: bool,
         output: Any = None,
-        error: Optional[str] = None,
-        metadata: Optional[Dict[str, Any]] = None,
+        error: str | None = None,
+        metadata: dict[str, Any] | None = None,
     ) -> None:
         self.success = success
         self.output = output
@@ -55,7 +56,7 @@ class Tool(ABC):
         """
         ...
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "name": self.name,
             "description": self.description,

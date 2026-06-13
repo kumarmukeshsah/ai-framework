@@ -1,10 +1,11 @@
 """Qdrant vector store retriever implementation."""
+
 from __future__ import annotations
 
 import time
-from typing import Any, Optional
+from typing import Any
 
-from product.core.errors import RetrievalError, IndexingError
+from product.core.errors import IndexingError, RetrievalError
 from product.core.logging import get_logger
 
 logger = get_logger(__name__)
@@ -20,11 +21,11 @@ class QdrantRetriever:
     def __init__(
         self,
         url: str = "http://localhost:6333",
-        api_key: Optional[str] = None,
+        api_key: str | None = None,
         collection: str = "ai_framework",
         embedding_dim: int = 1536,
         preferred: bool = True,
-        embed_fn: Optional[callable] = None,
+        embed_fn: callable | None = None,
     ) -> None:
         self.url = url
         self.api_key = api_key
@@ -38,6 +39,7 @@ class QdrantRetriever:
             return self._client
         try:
             from qdrant_client import QdrantClient
+
             self._client = QdrantClient(url=self.url, api_key=self.api_key)
             logger.info(f"Connected to Qdrant at {self.url}")
         except ImportError:
@@ -78,8 +80,8 @@ class QdrantRetriever:
         self,
         query: str,
         top_k: int = 5,
-        filters: Optional[dict[str, Any]] = None,
-        score_threshold: Optional[float] = None,
+        filters: dict[str, Any] | None = None,
+        score_threshold: float | None = None,
     ) -> dict:
         """Retrieve documents similar to the query.
 
@@ -129,7 +131,7 @@ class QdrantRetriever:
         self,
         document_id: str,
         content: str,
-        metadata: Optional[dict[str, Any]] = None,
+        metadata: dict[str, Any] | None = None,
     ) -> bool:
         """Index a document into Qdrant.
 
@@ -200,7 +202,9 @@ class _MockQdrantClient:
 
     def search(self, collection_name, query_vector, limit=5, score_threshold=None):
         return [
-            self.MockPoint(id="mock-1", score=0.9, payload={"text": "Mock result 1", "source": "mock"}),
+            self.MockPoint(
+                id="mock-1", score=0.9, payload={"text": "Mock result 1", "source": "mock"}
+            ),
         ]
 
     def upsert(self, collection_name, points):

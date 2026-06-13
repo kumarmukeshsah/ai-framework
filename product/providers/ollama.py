@@ -1,8 +1,10 @@
 """Ollama provider implementation."""
+
 from __future__ import annotations
 
 import json
-from typing import Any, AsyncGenerator, List, Optional, Type
+from collections.abc import AsyncGenerator
+from typing import Any
 
 import httpx
 from pydantic import BaseModel
@@ -28,7 +30,7 @@ class OllamaProvider(LLMProvider):
         self.api_base = api_base.rstrip("/")
         self.model = model
         self.timeout = timeout
-        self._client: Optional[httpx.AsyncClient] = None
+        self._client: httpx.AsyncClient | None = None
 
     def _get_client(self) -> httpx.AsyncClient:
         if self._client is None:
@@ -49,10 +51,10 @@ class OllamaProvider(LLMProvider):
     @track_llm_call(provider="ollama", model="llama3.1")
     async def generate(
         self,
-        messages: List[Message],
+        messages: list[Message],
         temperature: float = 0.7,
-        max_tokens: Optional[int] = None,
-        stop_sequences: Optional[List[str]] = None,
+        max_tokens: int | None = None,
+        stop_sequences: list[str] | None = None,
     ) -> LLMResponse:
         payload: dict[str, Any] = {
             "model": self.model,
@@ -75,10 +77,10 @@ class OllamaProvider(LLMProvider):
     @track_llm_call(provider="ollama", model="llama3.1")
     async def structured_generate(
         self,
-        messages: List[Message],
-        response_model: Type[BaseModel],
+        messages: list[Message],
+        response_model: type[BaseModel],
         temperature: float = 0.7,
-        max_tokens: Optional[int] = None,
+        max_tokens: int | None = None,
     ) -> BaseModel:
         schema = response_model.model_json_schema()
         prompt = f"Respond with valid JSON matching:\n{json.dumps(schema, indent=2)}"
@@ -88,9 +90,7 @@ class OllamaProvider(LLMProvider):
         parsed = json.loads(result.content)
         return response_model.model_validate(parsed)
 
-    async def embeddings(
-        self, texts: List[str], model: Optional[str] = None
-    ) -> EmbeddingResponse:
+    async def embeddings(self, texts: list[str], model: str | None = None) -> EmbeddingResponse:
         """Generate embeddings for a list of texts.
 
         Args:
@@ -118,9 +118,9 @@ class OllamaProvider(LLMProvider):
 
     async def stream(
         self,
-        messages: List[Message],
+        messages: list[Message],
         temperature: float = 0.7,
-        max_tokens: Optional[int] = None,
+        max_tokens: int | None = None,
     ) -> AsyncGenerator[str, None]:
         payload: dict[str, Any] = {
             "model": self.model,
@@ -135,7 +135,7 @@ class OllamaProvider(LLMProvider):
         try:
             async with client.stream("POST", "/api/chat", json=payload) as response:
                 if response.status_code != 200:
-                    text = await response.aread()
+                    await response.aread()
                     raise ProviderAPIError(f"Ollama streaming error: {response.status_code}")
                 async for line in response.aiter_lines():
                     if line.strip():

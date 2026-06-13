@@ -1,9 +1,10 @@
 """Tests for embedding drift detection in RAG pipeline."""
+
 from __future__ import annotations
 
 import pytest
 
-from product.rag.chunkers import TextChunker, DocumentChunker
+from product.rag.chunkers import TextChunker
 
 
 class TestEmbeddingDrift:
@@ -40,14 +41,14 @@ class TestEmbeddingDrift:
 
     def test_empty_document_handling(self, chunkers):
         """Empty documents should not crash chunkers."""
-        for name, chunker in chunkers.items():
+        for _name, chunker in chunkers.items():
             result = chunker.chunk("")
             assert isinstance(result.chunks, list)
 
     def test_very_large_document_chunking(self, chunkers):
         """Very large documents should be chunked without overflow."""
         large_text = "Python is a programming language. " * 10000
-        for name, chunker in chunkers.items():
+        for _name, chunker in chunkers.items():
             result = chunker.chunk(large_text)
             assert result.chunk_count > 0
             for chunk in result.chunks:
@@ -71,6 +72,6 @@ class TestEmbeddingDrift:
             "--- --- --- bullet points --- --- ---",
         ]
         for text in texts:
-            for name, chunker in chunkers.items():
+            for _name, chunker in chunkers.items():
                 result = chunker.chunk(text)
                 assert isinstance(result.chunks, list)

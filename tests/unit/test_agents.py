@@ -1,4 +1,5 @@
 """Unit tests for agents."""
+
 import pytest
 
 from product.agents.evaluator import EvaluatorAgent
@@ -24,7 +25,9 @@ class TestInterviewAgent:
     @pytest.mark.asyncio
     async def test_process_senior_developer(self):
         """Test evaluating senior developer."""
-        transcript = "I have 10+ years of experience, architected multiple systems, and mentored teams."
+        transcript = (
+            "I have 10+ years of experience, architected multiple systems, and mentored teams."
+        )
         result = await self.agent.process(transcript)
 
         assert result.candidate_level.lower() == "senior"

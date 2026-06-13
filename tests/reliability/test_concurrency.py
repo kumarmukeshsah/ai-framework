@@ -3,6 +3,7 @@
 Ensures the framework handles multiple simultaneous requests without
 data corruption, race conditions, or degraded service.
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -58,6 +59,7 @@ class TestConcurrency:
     @pytest.mark.asyncio
     async def test_concurrent_empty_inputs(self, evaluator):
         """Empty inputs processed concurrently should not crash."""
+
         async def process():
             try:
                 result = await evaluator.process("")
@@ -72,6 +74,7 @@ class TestConcurrency:
     @pytest.mark.asyncio
     async def test_concurrent_memory_stability(self, evaluator):
         """Concurrent calls should not cause memory issues."""
+
         async def process():
             result = await evaluator.process("Python developer with 3 years experience.")
             return result

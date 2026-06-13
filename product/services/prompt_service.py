@@ -1,9 +1,9 @@
 """Prompt management service with versioning and LRU caching."""
+
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Dict, List, Optional
-from functools import lru_cache
+from typing import Any
 
 import yaml
 from pydantic import BaseModel
@@ -22,7 +22,7 @@ class PromptTemplate(BaseModel):
     description: str
     system_prompt: str
     user_template: str
-    output_schema: Optional[Dict[str, Any]] = None
+    output_schema: dict[str, Any] | None = None
 
     model_config = {"frozen": True}
 
@@ -37,7 +37,7 @@ class PromptManager:
     def __init__(self, prompts_dir: str = "product/prompts", max_cache: int = 128):
         self._prompts_dir = Path(prompts_dir)
         self._max_cache = max_cache
-        self._cache: Dict[str, PromptTemplate] = {}
+        self._cache: dict[str, PromptTemplate] = {}
         self._load_prompts()
 
     def _load_prompts(self) -> None:
@@ -53,7 +53,7 @@ class PromptManager:
                 prompt_name = yaml_file.stem
                 key = f"{prompt_name}@{version_dir.name}"
                 try:
-                    with open(yaml_file) as f:
+                    with yaml_file.open() as f:
                         data = yaml.safe_load(f)
                     template = PromptTemplate(
                         version=data.get("version", version_dir.name),
@@ -67,7 +67,7 @@ class PromptManager:
                 except Exception as e:
                     logger.error(f"Failed to load prompt {yaml_file}: {e}")
 
-    def get_prompt(self, prompt_name: str, version: Optional[str] = None) -> PromptTemplate:
+    def get_prompt(self, prompt_name: str, version: str | None = None) -> PromptTemplate:
         """Get a prompt template by name and optional version.
 
         If version is None, returns the latest version.
@@ -95,8 +95,8 @@ class PromptManager:
     def render_prompt(
         self,
         prompt_name: str,
-        variables: Dict[str, Any],
-        version: Optional[str] = None,
+        variables: dict[str, Any],
+        version: str | None = None,
     ) -> tuple:
         """Render a prompt template with variables.
 
@@ -112,7 +112,7 @@ class PromptManager:
         except Exception as e:
             raise PromptRenderError(f"Failed to render prompt '{prompt_name}': {e}")
 
-    def get_latest_version(self, prompt_name: str) -> Optional[str]:
+    def get_latest_version(self, prompt_name: str) -> str | None:
         matching = sorted(
             (k for k in self._cache if k.startswith(f"{prompt_name}@")),
             key=self._version_sort_key,
@@ -122,15 +122,17 @@ class PromptManager:
             return None
         return matching[0].split("@")[1]
 
-    def list_prompts(self) -> List[Dict[str, str]]:
+    def list_prompts(self) -> list[dict[str, str]]:
         result = []
         for key, template in self._cache.items():
             name, version = key.split("@")
-            result.append({
-                "name": name,
-                "version": version,
-                "description": template.description,
-            })
+            result.append(
+                {
+                    "name": name,
+                    "version": version,
+                    "description": template.description,
+                }
+            )
         return result
 
     @staticmethod

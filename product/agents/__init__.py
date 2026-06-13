@@ -6,10 +6,11 @@ Provides:
 - ``Memory`` — conversation history backends.
 - ``EvaluatorAgent`` — multi-stage candidate evaluation pipeline.
 """
+
 from product.agents.base import BaseAgent
+from product.agents.evaluator import EvaluationStage, EvaluatorAgent
+from product.agents.memory import InMemoryMemory, Memory
 from product.agents.tools import Tool, ToolResult
-from product.agents.memory import Memory, InMemoryMemory
-from product.agents.evaluator import EvaluatorAgent, EvaluationStage
 
 __all__ = [
     "BaseAgent",

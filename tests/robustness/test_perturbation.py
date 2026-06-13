@@ -3,12 +3,12 @@
 Measures whether small changes to input (typos, synonyms, paraphrases)
 produce proportionally small changes in output (Lipschitz continuity).
 """
+
 from __future__ import annotations
 
 import pytest
 
 from product.agents.evaluator import EvaluatorAgent
-
 
 BASE_TRANSCRIPT = (
     "I have 8 years of experience with Python, FastAPI, and PostgreSQL. "
@@ -50,9 +50,9 @@ class TestPerturbationRobustness:
         for perturbed in MINOR_PERTURBATIONS[1:]:
             result = await evaluator.process(perturbed)
             level = result.evaluation.candidate_level if result.evaluation else ""
-            assert level == base_level, (
-                f"Minor perturbation changed level from '{base_level}' to '{level}': {perturbed[:50]}"
-            )
+            assert (
+                level == base_level
+            ), f"Minor perturbation changed level from '{base_level}' to '{level}': {perturbed[:50]}"
 
     @pytest.mark.asyncio
     async def test_major_perturbations_handled(self, evaluator):

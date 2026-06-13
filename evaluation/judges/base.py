@@ -1,4 +1,5 @@
 """Base judge for LLM-as-Judge evaluations."""
+
 from __future__ import annotations
 
 from abc import ABC, abstractmethod

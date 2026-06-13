@@ -2,6 +2,7 @@
 
 When the framework uses an LLM provider, temperature affects output variability.
 """
+
 from __future__ import annotations
 
 import pytest

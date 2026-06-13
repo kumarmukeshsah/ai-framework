@@ -3,6 +3,7 @@
 For production AI systems, deterministic behavior (at temperature=0) is critical
 for testing, auditing, and debugging.
 """
+
 from __future__ import annotations
 
 import pytest
@@ -33,9 +34,9 @@ class TestDeterminism:
             else:
                 results.append(str(result.success))
 
-        assert all(r == results[0] for r in results), (
-            "Rule-based evaluator produced different evaluation for same input"
-        )
+        assert all(
+            r == results[0] for r in results
+        ), "Rule-based evaluator produced different evaluation for same input"
 
     @pytest.mark.asyncio
     async def test_batch_consistency(self, evaluator):
@@ -83,4 +84,6 @@ class TestDeterminism:
             e1 = r1.evaluation
             e2 = r2.evaluation
             if e1 and e2:
-                assert e1.candidate_level == e2.candidate_level, f"Non-deterministic for: {input_text[:50]}"
+                assert (
+                    e1.candidate_level == e2.candidate_level
+                ), f"Non-deterministic for: {input_text[:50]}"

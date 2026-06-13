@@ -1,6 +1,7 @@
 """Performance benchmarks for API endpoints."""
+
 import pytest
-from httpx import AsyncClient, ASGITransport
+from httpx import ASGITransport, AsyncClient
 
 from product.api.app import app
 
@@ -17,6 +18,7 @@ class TestAPIPerformance:
 
     async def test_health_endpoint(self, client, benchmark):
         """Benchmark health check endpoint."""
+
         async def run():
             response = await client.get("/health")
             return response
@@ -26,6 +28,7 @@ class TestAPIPerformance:
 
     async def test_evaluate_endpoint(self, client, benchmark):
         """Benchmark evaluate endpoint."""
+
         async def run():
             response = await client.post(
                 "/evaluate",
@@ -41,6 +44,7 @@ class TestAPIPerformance:
 
     async def test_evaluate_senior_endpoint(self, client, benchmark):
         """Benchmark senior candidate evaluation."""
+
         async def run():
             response = await client.post(
                 "/evaluate",
@@ -61,6 +65,7 @@ class TestAPIPerformance:
 
     async def test_prompts_list_endpoint(self, client, benchmark):
         """Benchmark prompts listing endpoint."""
+
         async def run():
             response = await client.get("/prompts")
             return response
@@ -70,6 +75,7 @@ class TestAPIPerformance:
 
     async def test_root_endpoint(self, client, benchmark):
         """Benchmark root endpoint."""
+
         async def run():
             response = await client.get("/")
             return response

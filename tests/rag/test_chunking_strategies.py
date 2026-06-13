@@ -4,6 +4,7 @@ Evaluates trade-offs between chunking approaches for RAG:
 - Fixed-size vs recursive vs paragraph vs sentence chunking
 - Impact of chunk size and overlap on retrieval quality
 """
+
 from __future__ import annotations
 
 import pytest
@@ -47,9 +48,7 @@ class TestChunkingStrategies:
             counts[name] = result.chunk_count
 
         unique_counts = set(counts.values())
-        assert len(unique_counts) >= 2, (
-            f"All strategies produced same chunk count: {counts}"
-        )
+        assert len(unique_counts) >= 2, f"All strategies produced same chunk count: {counts}"
 
     def test_chunk_size_configuration(self):
         """Different chunk sizes should affect output."""
@@ -60,9 +59,9 @@ class TestChunkingStrategies:
         small_chunks = small.chunk(text)
         large_chunks = large.chunk(text)
 
-        assert small_chunks.chunk_count > large_chunks.chunk_count, (
-            f"Small chunks ({small_chunks.chunk_count}) should produce more chunks than large ({large_chunks.chunk_count})"
-        )
+        assert (
+            small_chunks.chunk_count > large_chunks.chunk_count
+        ), f"Small chunks ({small_chunks.chunk_count}) should produce more chunks than large ({large_chunks.chunk_count})"
 
     def test_overlap_configuration(self):
         """Overlap configuration should affect adjacent chunk content."""

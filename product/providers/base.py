@@ -3,10 +3,11 @@
 Defines the abstract contract that all LLM providers must implement.
 No application code should depend directly on any provider SDK.
 """
+
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import AsyncGenerator, List, Optional
+from collections.abc import AsyncGenerator
 
 from pydantic import BaseModel
 
@@ -16,7 +17,7 @@ class Message(BaseModel):
 
     role: str  # "user", "assistant", "system"
     content: str
-    name: Optional[str] = None
+    name: str | None = None
 
     model_config = {"frozen": True}
 
@@ -26,20 +27,20 @@ class LLMResponse(BaseModel):
 
     content: str
     model: str
-    tokens_used: Optional[int] = None
-    prompt_tokens: Optional[int] = None
-    completion_tokens: Optional[int] = None
-    stop_reason: Optional[str] = None
+    tokens_used: int | None = None
+    prompt_tokens: int | None = None
+    completion_tokens: int | None = None
+    stop_reason: str | None = None
     provider: str = "unknown"
-    prompt_version: Optional[str] = None
+    prompt_version: str | None = None
 
 
 class EmbeddingResponse(BaseModel):
     """Response from an embedding call."""
 
-    embeddings: List[List[float]]
+    embeddings: list[list[float]]
     model: str
-    tokens_used: Optional[int] = None
+    tokens_used: int | None = None
     provider: str = "unknown"
 
 
@@ -60,42 +61,34 @@ class LLMProvider(ABC):
     @abstractmethod
     async def generate(
         self,
-        messages: List[Message],
+        messages: list[Message],
         temperature: float = 0.7,
-        max_tokens: Optional[int] = None,
-        stop_sequences: Optional[List[str]] = None,
-    ) -> LLMResponse:
-        ...
+        max_tokens: int | None = None,
+        stop_sequences: list[str] | None = None,
+    ) -> LLMResponse: ...
 
     @abstractmethod
     async def structured_generate(
         self,
-        messages: List[Message],
+        messages: list[Message],
         response_model: type[BaseModel],
         temperature: float = 0.7,
-        max_tokens: Optional[int] = None,
-    ) -> BaseModel:
-        ...
+        max_tokens: int | None = None,
+    ) -> BaseModel: ...
 
     @abstractmethod
-    async def embeddings(
-        self, texts: List[str], model: Optional[str] = None
-    ) -> EmbeddingResponse:
-        ...
+    async def embeddings(self, texts: list[str], model: str | None = None) -> EmbeddingResponse: ...
 
     @abstractmethod
     async def stream(
         self,
-        messages: List[Message],
+        messages: list[Message],
         temperature: float = 0.7,
-        max_tokens: Optional[int] = None,
-    ) -> AsyncGenerator[str, None]:
-        ...
+        max_tokens: int | None = None,
+    ) -> AsyncGenerator[str, None]: ...
 
     @abstractmethod
-    async def count_tokens(self, text: str) -> int:
-        ...
+    async def count_tokens(self, text: str) -> int: ...
 
     @abstractmethod
-    async def health_check(self) -> bool:
-        ...
+    async def health_check(self) -> bool: ...

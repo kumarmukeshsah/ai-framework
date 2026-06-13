@@ -1,4 +1,5 @@
 """Tests for context relevance in RAG retrieval."""
+
 from __future__ import annotations
 
 import pytest
@@ -31,7 +32,7 @@ class TestContextRelevance:
         irrelevant = "The weather is nice today. " * 50
         mixed = relevant + "[[SEPARATOR]]" + irrelevant
 
-        for name, chunker in chunkers.items():
+        for _name, chunker in chunkers.items():
             result = chunker.chunk(mixed)
             assert result.chunk_count >= 1
 
@@ -43,7 +44,7 @@ class TestContextRelevance:
             "PostgreSQL is a relational database. "
             "Docker is used for containerization. "
         ) * 20
-        for name, chunker in chunkers.items():
+        for _name, chunker in chunkers.items():
             result = chunker.chunk(text)
             assert result.chunk_count > 0
 

@@ -1,4 +1,5 @@
 """Relevance judge - evaluates response relevance to input."""
+
 from __future__ import annotations
 
 from typing import Any
@@ -53,10 +54,7 @@ class RelevanceJudge(BaseJudge):
 
         # Output should not be empty or purely repetition
         output_words = set(output_lower.split())
-        if len(output_words) < 3:
-            relevance_penalty = 0.3
-        else:
-            relevance_penalty = 0.0
+        relevance_penalty = 0.3 if len(output_words) < 3 else 0.0
 
         # Higher score for covering more input concepts
         final_score = max(0.0, min(1.0, keyword_coverage - relevance_penalty))
@@ -66,9 +64,10 @@ class RelevanceJudge(BaseJudge):
             f"Output length: {len(output_words)} unique words"
         )
 
-        feedback = "Highly relevant" if final_score >= 0.7 else (
-            "Moderately relevant" if final_score >= 0.4 else
-            "Poorly relevant"
+        feedback = (
+            "Highly relevant"
+            if final_score >= 0.7
+            else ("Moderately relevant" if final_score >= 0.4 else "Poorly relevant")
         )
 
         return JudgeResult(

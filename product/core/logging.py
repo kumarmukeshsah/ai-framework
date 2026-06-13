@@ -3,11 +3,11 @@
 Provides context-aware logging with JSON formatting option,
 and a standard logging interface compatible with loguru-style usage.
 """
+
 from __future__ import annotations
 
 import logging
 import sys
-from typing import Any, Optional
 
 # Module-level logger cache
 _loggers: dict[str, logging.Logger] = {}

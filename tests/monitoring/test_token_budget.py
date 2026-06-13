@@ -3,9 +3,8 @@
 Ensures the framework can track and enforce token usage limits
 per request, preventing unexpected cost spikes.
 """
-from __future__ import annotations
 
-import pytest
+from __future__ import annotations
 
 from product.core.config import LLMConfig
 

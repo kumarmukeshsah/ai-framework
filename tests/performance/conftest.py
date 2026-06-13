@@ -10,6 +10,7 @@ in test output.
 The fixture supports both sync and async callables: if the supplied
 ``func`` returns a coroutine, it is awaited inside the timed loop.
 """
+
 from __future__ import annotations
 
 import asyncio

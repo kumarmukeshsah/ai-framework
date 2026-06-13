@@ -1,15 +1,16 @@
 """Tests for agent framework components."""
+
 from __future__ import annotations
 
 import pytest
 
 from product.agents.base import BaseAgent
+from product.agents.memory import InMemoryMemory
 from product.agents.tools import Tool, ToolResult
-from product.agents.memory import InMemoryMemory, Memory
 from product.providers.base import Message
 
-
 # ── Memory Tests ──────────────────────────────────────────────────────────
+
 
 class TestInMemoryMemory:
     def test_add_and_retrieve(self) -> None:
@@ -42,6 +43,7 @@ class TestInMemoryMemory:
 
 
 # ── Tool Tests ────────────────────────────────────────────────────────────
+
 
 class TestToolResult:
     def test_success(self) -> None:
@@ -80,6 +82,7 @@ class TestTool:
 
 # ── BaseAgent Tests ──────────────────────────────────────────────────────
 
+
 class TestBaseAgent:
     def test_create_agent(self) -> None:
         agent = _create_test_agent()
@@ -95,6 +98,7 @@ class TestBaseAgent:
         agent = _create_test_agent()
         with pytest.raises(ValueError, match="has no LLM provider configured"):
             import asyncio
+
             asyncio.run(agent.chat("hello"))
 
     def test_add_tool(self) -> None:
@@ -119,6 +123,7 @@ class TestBaseAgent:
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────
+
 
 def _create_test_agent(system_prompt: str = "You are a test agent.") -> BaseAgent:
     class TestAgent(BaseAgent):

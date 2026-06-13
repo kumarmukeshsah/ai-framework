@@ -1,12 +1,19 @@
 """Anthropic provider implementation."""
+
 from __future__ import annotations
 
-from typing import Any, AsyncGenerator, List, Optional, Type
+from collections.abc import AsyncGenerator
+from typing import Any
 
 import httpx
 from pydantic import BaseModel
 
-from product.core.errors import ProviderAPIError, ProviderAuthError, ProviderConnectionError, ProviderRateLimitError
+from product.core.errors import (
+    ProviderAPIError,
+    ProviderAuthError,
+    ProviderConnectionError,
+    ProviderRateLimitError,
+)
 from product.core.telemetry import track_llm_call
 from product.providers.base import EmbeddingResponse, LLMProvider, LLMResponse, Message
 from product.providers.registry import register_provider
@@ -31,7 +38,7 @@ class AnthropicProvider(LLMProvider):
         self.api_base = api_base.rstrip("/")
         self.max_retries = max_retries
         self.timeout = timeout
-        self._client: Optional[httpx.AsyncClient] = None
+        self._client: httpx.AsyncClient | None = None
 
     def _get_client(self) -> httpx.AsyncClient:
         if self._client is None:
@@ -66,7 +73,7 @@ class AnthropicProvider(LLMProvider):
 
         return response.json()
 
-    def _convert_messages(self, messages: List[Message]) -> tuple[str, List[dict]]:
+    def _convert_messages(self, messages: list[Message]) -> tuple[str, list[dict]]:
         system = ""
         converted = []
         for m in messages:
@@ -79,10 +86,10 @@ class AnthropicProvider(LLMProvider):
     @track_llm_call(provider="anthropic", model="claude-3-haiku-20240307")
     async def generate(
         self,
-        messages: List[Message],
+        messages: list[Message],
         temperature: float = 0.7,
-        max_tokens: Optional[int] = None,
-        stop_sequences: Optional[List[str]] = None,
+        max_tokens: int | None = None,
+        stop_sequences: list[str] | None = None,
     ) -> LLMResponse:
         system, converted = self._convert_messages(messages)
         payload: dict[str, Any] = {
@@ -112,16 +119,14 @@ class AnthropicProvider(LLMProvider):
     @track_llm_call(provider="anthropic", model="claude-3-haiku-20240307")
     async def structured_generate(
         self,
-        messages: List[Message],
-        response_model: Type[BaseModel],
+        messages: list[Message],
+        response_model: type[BaseModel],
         temperature: float = 0.7,
-        max_tokens: Optional[int] = None,
+        max_tokens: int | None = None,
     ) -> BaseModel:
         schema = response_model.model_json_schema()
         system, converted = self._convert_messages(messages)
-        schema_prompt = (
-            f"\n\nYou must respond with valid JSON matching this schema:\n{schema}"
-        )
+        schema_prompt = f"\n\nYou must respond with valid JSON matching this schema:\n{schema}"
         if system:
             system += schema_prompt
         else:
@@ -139,19 +144,18 @@ class AnthropicProvider(LLMProvider):
         data = await self._request("/messages", payload)
         content = data["content"][0].get("text", "")
         import json
+
         parsed = json.loads(content)
         return response_model.model_validate(parsed)
 
-    async def embeddings(
-        self, texts: List[str], model: Optional[str] = None
-    ) -> EmbeddingResponse:
+    async def embeddings(self, texts: list[str], model: str | None = None) -> EmbeddingResponse:
         raise NotImplementedError("Anthropic does not provide an embeddings API")
 
     async def stream(
         self,
-        messages: List[Message],
+        messages: list[Message],
         temperature: float = 0.7,
-        max_tokens: Optional[int] = None,
+        max_tokens: int | None = None,
     ) -> AsyncGenerator[str, None]:
         system, converted = self._convert_messages(messages)
         payload: dict[str, Any] = {
@@ -168,12 +172,13 @@ class AnthropicProvider(LLMProvider):
         try:
             async with client.stream("POST", "/messages", json=payload) as response:
                 if response.status_code != 200:
-                    text = await response.aread()
+                    await response.aread()
                     raise ProviderAPIError(f"Anthropic streaming error: {response.status_code}")
                 async for line in response.aiter_lines():
                     if line.startswith("data: "):
                         chunk = line[6:]
                         import json
+
                         data = json.loads(chunk)
                         if data.get("type") == "content_block_delta":
                             delta = data.get("delta", {})
@@ -185,6 +190,7 @@ class AnthropicProvider(LLMProvider):
     async def count_tokens(self, text: str) -> int:
         try:
             from anthropic import Anthropic
+
             client = Anthropic(api_key=self.api_key)
             return client.count_tokens(text)
         except ImportError:

@@ -3,12 +3,12 @@
 Measures whether the system can detect inputs that fall outside its training
 distribution, such as domain mismatches, unseen patterns, and novel formats.
 """
+
 from __future__ import annotations
 
 import pytest
 
 from product.agents.evaluator import EvaluatorAgent
-
 
 # Synthetic dataset simulating in-distribution vs out-of-distribution inputs
 IN_DISTRIBUTION_INPUTS = [

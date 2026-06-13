@@ -3,9 +3,8 @@
 Providers self-register via the ``@register_provider`` decorator,
 making discovery automatic and the factory extensible without modification.
 """
-from __future__ import annotations
 
-from typing import Dict, Optional, Type
+from __future__ import annotations
 
 from product.core.errors import (
     InvalidProviderError,
@@ -14,11 +13,11 @@ from product.core.errors import (
 )
 from product.providers.base import LLMProvider
 
-_registry: Dict[str, Type[LLMProvider]] = {}
+_registry: dict[str, type[LLMProvider]] = {}
 
 # Providers that require an API key. Local / on-prem providers
 # (ollama, vllm) do not.
-_API_KEY_REQUIRED: Dict[str, bool] = {
+_API_KEY_REQUIRED: dict[str, bool] = {
     "openai": True,
     "anthropic": True,
     "azure_openai": True,
@@ -38,7 +37,8 @@ def register_provider(name: str) -> callable:
             provider_name = "openai"
             ...
     """
-    def decorator(cls: Type[LLMProvider]) -> Type[LLMProvider]:
+
+    def decorator(cls: type[LLMProvider]) -> type[LLMProvider]:
         if not issubclass(cls, LLMProvider):
             raise TypeError(f"{cls.__name__} must subclass LLMProvider")
         cls.provider_name = name
@@ -57,7 +57,7 @@ class ProviderRegistry:
         return list(_registry.keys())
 
     @staticmethod
-    def get_class(name: str) -> Type[LLMProvider]:
+    def get_class(name: str) -> type[LLMProvider]:
         """Get the provider class by name.
 
         Raises:
@@ -113,7 +113,7 @@ class ProviderRegistry:
         return name in _registry
 
     @staticmethod
-    def register(name: str, cls: Type[LLMProvider]) -> None:
+    def register(name: str, cls: type[LLMProvider]) -> None:
         """Manually register a provider class (alternative to the decorator)."""
         if not issubclass(cls, LLMProvider):
             raise TypeError(f"{cls.__name__} must subclass LLMProvider")

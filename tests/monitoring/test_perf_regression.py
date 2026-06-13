@@ -2,14 +2,15 @@
 
 Tracks latency across commits to detect performance degradation.
 """
+
 from __future__ import annotations
 
+import contextlib
 import time
 
 import pytest
 
 from product.agents.evaluator import EvaluatorAgent
-
 
 LATENCY_THRESHOLD_MS = 5000  # 5 seconds for async operations
 
@@ -30,9 +31,9 @@ class TestPerformanceRegression:
         await evaluator.process(input_text)
         duration_ms = (time.perf_counter() - start) * 1000
 
-        assert duration_ms < LATENCY_THRESHOLD_MS, (
-            f"Evaluation took {duration_ms:.1f}ms, threshold is {LATENCY_THRESHOLD_MS}ms"
-        )
+        assert (
+            duration_ms < LATENCY_THRESHOLD_MS
+        ), f"Evaluation took {duration_ms:.1f}ms, threshold is {LATENCY_THRESHOLD_MS}ms"
 
     @pytest.mark.asyncio
     async def test_batch_latency_stability(self, evaluator):
@@ -51,9 +52,9 @@ class TestPerformanceRegression:
         total_ms = (time.perf_counter() - start) * 1000
         avg_ms = total_ms / len(inputs)
 
-        assert avg_ms < LATENCY_THRESHOLD_MS, (
-            f"Average latency {avg_ms:.1f}ms exceeds threshold {LATENCY_THRESHOLD_MS}ms"
-        )
+        assert (
+            avg_ms < LATENCY_THRESHOLD_MS
+        ), f"Average latency {avg_ms:.1f}ms exceeds threshold {LATENCY_THRESHOLD_MS}ms"
 
     @pytest.mark.asyncio
     async def test_large_input_latency(self, evaluator):
@@ -64,9 +65,7 @@ class TestPerformanceRegression:
         await evaluator.process(large_input)
         duration_ms = (time.perf_counter() - start) * 1000
 
-        assert duration_ms < LATENCY_THRESHOLD_MS * 2, (
-            f"Large input took {duration_ms:.1f}ms"
-        )
+        assert duration_ms < LATENCY_THRESHOLD_MS * 2, f"Large input took {duration_ms:.1f}ms"
 
     @pytest.mark.asyncio
     async def test_latency_scaling(self, evaluator):
@@ -80,20 +79,14 @@ class TestPerformanceRegression:
         total_ms = (time.perf_counter() - start) * 1000
         avg_ms = total_ms / num_iterations
 
-        assert avg_ms < LATENCY_THRESHOLD_MS, (
-            f"Average latency {avg_ms:.1f}ms exceeds threshold"
-        )
+        assert avg_ms < LATENCY_THRESHOLD_MS, f"Average latency {avg_ms:.1f}ms exceeds threshold"
 
     @pytest.mark.asyncio
     async def test_empty_input_latency(self, evaluator):
         """Empty input should be fast to process."""
         start = time.perf_counter()
-        try:
+        with contextlib.suppress(Exception):
             await evaluator.process("")
-        except Exception:
-            pass
         duration_ms = (time.perf_counter() - start) * 1000
 
-        assert duration_ms < LATENCY_THRESHOLD_MS, (
-            f"Empty input took {duration_ms:.1f}ms"
-        )
+        assert duration_ms < LATENCY_THRESHOLD_MS, f"Empty input took {duration_ms:.1f}ms"

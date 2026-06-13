@@ -1,4 +1,5 @@
 """Mean Reciprocal Rank (MRR) metric for retrieval evaluation."""
+
 from __future__ import annotations
 
 from typing import Any
@@ -46,5 +47,8 @@ class MeanReciprocalRank(BaseMetric):
         return MetricResult(
             name=self.name,
             value=0.0,
-            details={"note": "No relevant document found in results", "total_retrieved": len(retrieved_ids)},
+            details={
+                "note": "No relevant document found in results",
+                "total_retrieved": len(retrieved_ids),
+            },
         )

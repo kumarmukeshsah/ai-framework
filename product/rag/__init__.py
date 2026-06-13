@@ -5,8 +5,9 @@ Provides:
 - ``BaseRetriever`` — abstract retrieval interface.
 - ``QdrantRetriever`` — Qdrant vector store integration.
 """
-from product.rag.chunkers import DocumentChunker, ChunkResult
-from product.rag.base import BaseRetriever, RetrievedDocument, RetrievalResult
+
+from product.rag.base import BaseRetriever, RetrievalResult, RetrievedDocument
+from product.rag.chunkers import ChunkResult, DocumentChunker
 
 __all__ = [
     "DocumentChunker",

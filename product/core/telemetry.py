@@ -9,12 +9,13 @@ Provides:
 All decorators are no-op when telemetry is disabled, so they can be safely
 applied in any environment without overhead.
 """
+
 from __future__ import annotations
 
 import functools
 import time
 from contextlib import contextmanager
-from typing import Any, Callable, Optional, TypeVar
+from typing import Any, Callable, TypeVar
 
 from product.core.logging import get_logger
 
@@ -47,7 +48,7 @@ def init_telemetry(
     environment: str = "development",
     metrics_port: int = 8001,
     enable_trace_export: bool = False,
-    trace_endpoint: Optional[str] = None,
+    trace_endpoint: str | None = None,
 ) -> None:
     """Initialize OpenTelemetry and Prometheus metrics.
 
@@ -68,40 +69,59 @@ def init_telemetry(
 
         # ── Prometheus metrics ─────────────────────────────────────────────
         _llm_calls_counter = Counter(
-            "llm_calls_total", "Total LLM calls", ["provider", "model", "operation"],
+            "llm_calls_total",
+            "Total LLM calls",
+            ["provider", "model", "operation"],
         )
         _llm_latency_histogram = Histogram(
-            "llm_latency_seconds", "LLM call latency",
+            "llm_latency_seconds",
+            "LLM call latency",
             ["provider", "model"],
             buckets=(0.01, 0.05, 0.1, 0.5, 1.0, 2.0, 5.0, 10.0, 30.0, 60.0),
         )
         _llm_tokens_counter = Counter(
-            "llm_tokens_total", "Total LLM tokens", ["provider", "model", "type"],
+            "llm_tokens_total",
+            "Total LLM tokens",
+            ["provider", "model", "type"],
         )
         _agent_executions_counter = Counter(
-            "agent_executions_total", "Agent executions", ["agent_name", "status"],
+            "agent_executions_total",
+            "Agent executions",
+            ["agent_name", "status"],
         )
         _agent_latency_histogram = Histogram(
-            "agent_latency_seconds", "Agent execution latency", ["agent_name"],
+            "agent_latency_seconds",
+            "Agent execution latency",
+            ["agent_name"],
             buckets=(0.1, 0.5, 1.0, 2.0, 5.0, 10.0, 30.0, 60.0, 120.0),
         )
         _retrieval_calls_counter = Counter(
-            "retrieval_calls_total", "Retrieval calls", ["retriever"],
+            "retrieval_calls_total",
+            "Retrieval calls",
+            ["retriever"],
         )
         _retrieval_latency_histogram = Histogram(
-            "retrieval_latency_seconds", "Retrieval latency", ["retriever"],
+            "retrieval_latency_seconds",
+            "Retrieval latency",
+            ["retriever"],
             buckets=(0.01, 0.05, 0.1, 0.5, 1.0, 2.0, 5.0),
         )
         _api_requests_counter = Counter(
-            "api_requests_total", "API requests", ["endpoint", "method", "status"],
+            "api_requests_total",
+            "API requests",
+            ["endpoint", "method", "status"],
         )
         _api_latency_histogram = Histogram(
-            "api_latency_seconds", "API request latency", ["endpoint", "method"],
+            "api_latency_seconds",
+            "API request latency",
+            ["endpoint", "method"],
             buckets=(0.01, 0.05, 0.1, 0.5, 1.0, 2.0, 5.0, 10.0, 30.0),
         )
         _active_requests_gauge = Gauge("active_requests", "Active requests", ["endpoint"])
         _prompt_versions_counter = Counter(
-            "prompt_versions_total", "Prompt version usage", ["prompt_name", "version"],
+            "prompt_versions_total",
+            "Prompt version usage",
+            ["prompt_name", "version"],
         )
 
         # Start Prometheus HTTP server
@@ -119,10 +139,12 @@ def init_telemetry(
             from opentelemetry.sdk.trace import TracerProvider
             from opentelemetry.sdk.trace.export import BatchSpanProcessor
 
-            resource = Resource.create({
-                "service.name": service_name,
-                "service.environment": environment,
-            })
+            resource = Resource.create(
+                {
+                    "service.name": service_name,
+                    "service.environment": environment,
+                }
+            )
             tracer_provider = TracerProvider(resource=resource)
             if enable_trace_export and trace_endpoint:
                 exporter = OTLPSpanExporter(endpoint=trace_endpoint)
@@ -162,6 +184,7 @@ def track_llm_call(provider: str = "unknown", model: str = "unknown") -> Callabl
         async def generate(prompt: str) -> LLMResponse:
             ...
     """
+
     def decorator(func: F) -> F:
         @functools.wraps(func)
         async def wrapper(*args: Any, **kwargs: Any) -> Any:
@@ -171,25 +194,35 @@ def track_llm_call(provider: str = "unknown", model: str = "unknown") -> Callabl
                 latency = time.monotonic() - start
                 if _llm_calls_counter is not None:
                     _llm_calls_counter.labels(
-                        provider=provider, model=model, operation=func.__name__,
+                        provider=provider,
+                        model=model,
+                        operation=func.__name__,
                     ).inc()
                     _llm_latency_histogram.labels(
-                        provider=provider, model=model,
+                        provider=provider,
+                        model=model,
                     ).observe(latency)
-                tokens = getattr(result, "tokens_used", None) or getattr(result, "token_count", None)
+                tokens = getattr(result, "tokens_used", None) or getattr(
+                    result, "token_count", None
+                )
                 if tokens and _llm_tokens_counter is not None:
                     _llm_tokens_counter.labels(
-                        provider=provider, model=model, type="total",
+                        provider=provider,
+                        model=model,
+                        type="total",
                     ).inc(tokens)
                 return result
             except Exception:
                 latency = time.monotonic() - start
                 if _llm_calls_counter is not None:
                     _llm_calls_counter.labels(
-                        provider=provider, model=model, operation=func.__name__,
+                        provider=provider,
+                        model=model,
+                        operation=func.__name__,
                     ).inc()
                     _llm_latency_histogram.labels(
-                        provider=provider, model=model,
+                        provider=provider,
+                        model=model,
                     ).observe(latency)
                 raise
 
@@ -202,6 +235,7 @@ def track_llm_call(provider: str = "unknown", model: str = "unknown") -> Callabl
 
 def track_agent_execution(agent_name: str = "unknown") -> Callable[[F], F]:
     """Decorator that tracks agent execution metrics."""
+
     def decorator(func: F) -> F:
         @functools.wraps(func)
         async def wrapper(*args: Any, **kwargs: Any) -> Any:
@@ -211,7 +245,8 @@ def track_agent_execution(agent_name: str = "unknown") -> Callable[[F], F]:
                 latency = time.monotonic() - start
                 if _agent_executions_counter is not None:
                     _agent_executions_counter.labels(
-                        agent_name=agent_name, status="success",
+                        agent_name=agent_name,
+                        status="success",
                     ).inc()
                     _agent_latency_histogram.labels(agent_name=agent_name).observe(latency)
                 return result
@@ -219,7 +254,8 @@ def track_agent_execution(agent_name: str = "unknown") -> Callable[[F], F]:
                 latency = time.monotonic() - start
                 if _agent_executions_counter is not None:
                     _agent_executions_counter.labels(
-                        agent_name=agent_name, status="error",
+                        agent_name=agent_name,
+                        status="error",
                     ).inc()
                     _agent_latency_histogram.labels(agent_name=agent_name).observe(latency)
                 raise
@@ -231,6 +267,7 @@ def track_agent_execution(agent_name: str = "unknown") -> Callable[[F], F]:
 
 def track_api_endpoint(endpoint: str, method: str = "POST") -> Callable[[F], F]:
     """Decorator that tracks API endpoint metrics."""
+
     def decorator(func: F) -> F:
         @functools.wraps(func)
         async def wrapper(*args: Any, **kwargs: Any) -> Any:
@@ -240,10 +277,14 @@ def track_api_endpoint(endpoint: str, method: str = "POST") -> Callable[[F], F]:
             try:
                 result = await func(*args, **kwargs)
                 latency = time.monotonic() - start
-                status = getattr(result, "status_code", 200) if hasattr(result, "status_code") else 200
+                status = (
+                    getattr(result, "status_code", 200) if hasattr(result, "status_code") else 200
+                )
                 if _api_requests_counter is not None:
                     _api_requests_counter.labels(
-                        endpoint=endpoint, method=method, status=str(status),
+                        endpoint=endpoint,
+                        method=method,
+                        status=str(status),
                     ).inc()
                     _api_latency_histogram.labels(endpoint=endpoint, method=method).observe(latency)
                 return result
@@ -251,7 +292,9 @@ def track_api_endpoint(endpoint: str, method: str = "POST") -> Callable[[F], F]:
                 latency = time.monotonic() - start
                 if _api_requests_counter is not None:
                     _api_requests_counter.labels(
-                        endpoint=endpoint, method=method, status="500",
+                        endpoint=endpoint,
+                        method=method,
+                        status="500",
                     ).inc()
                     _api_latency_histogram.labels(endpoint=endpoint, method=method).observe(latency)
                 raise
@@ -274,7 +317,7 @@ def track_prompt_version(prompt_name: str, version: str) -> None:
 
 
 @contextmanager
-def span(name: str, attributes: Optional[dict[str, Any]] = None) -> Any:
+def span(name: str, attributes: dict[str, Any] | None = None) -> Any:
     """Context manager that creates an OpenTelemetry span.
 
     If telemetry is not initialized or OpenTelemetry is unavailable,

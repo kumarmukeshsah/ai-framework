@@ -4,9 +4,8 @@ Ensures that the same prompt produces structurally consistent results
 across different LLM providers. This is critical for production systems
 that may switch between providers.
 """
-from __future__ import annotations
 
-import pytest
+from __future__ import annotations
 
 from product.providers.registry import ProviderRegistry
 
@@ -28,9 +27,9 @@ class TestCrossProviderConsistency:
         for name in ProviderRegistry.get_names():
             provider_class = ProviderRegistry.get_class(name)
             for method in required_methods:
-                assert hasattr(provider_class, method), (
-                    f"Provider '{name}' missing method '{method}'"
-                )
+                assert hasattr(
+                    provider_class, method
+                ), f"Provider '{name}' missing method '{method}'"
 
     def test_provider_names_are_unique(self):
         """Provider names must be unique in the registry."""

@@ -6,6 +6,7 @@ Implements:
 - Rate limiting
 - Output filtering
 """
+
 from __future__ import annotations
 
 import re
@@ -17,7 +18,6 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
 
-from product.core.errors import PromptInjectionError, RateLimitExceededError
 from product.core.logging import get_logger
 
 logger = get_logger(__name__)
@@ -158,7 +158,10 @@ class SecurityMiddleware(BaseHTTPMiddleware):
             logger.warning(f"Rate limit exceeded for {client_ip}")
             return JSONResponse(
                 status_code=429,
-                content={"error": "RATE_LIMIT_EXCEEDED", "detail": f"Max {self.config.rate_limit} req/min"},
+                content={
+                    "error": "RATE_LIMIT_EXCEEDED",
+                    "detail": f"Max {self.config.rate_limit} req/min",
+                },
             )
 
         # Input validation for write methods
@@ -169,7 +172,10 @@ class SecurityMiddleware(BaseHTTPMiddleware):
                 if len(body_text) > self.config.max_input_length:
                     return JSONResponse(
                         status_code=413,
-                        content={"error": "INPUT_TOO_LARGE", "detail": f"Max {self.config.max_input_length} bytes"},
+                        content={
+                            "error": "INPUT_TOO_LARGE",
+                            "detail": f"Max {self.config.max_input_length} bytes",
+                        },
                     )
                 if self.config.enable_injection_detection:
                     detection = self._detect_injection(body_text)
@@ -194,6 +200,7 @@ class SecurityMiddleware(BaseHTTPMiddleware):
             filtered = self._filter_output(body)
             if filtered != body:
                 import json as _json
+
                 response = JSONResponse(
                     status_code=response.status_code,
                     content=_json.loads(filtered),

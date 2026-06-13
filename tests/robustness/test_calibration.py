@@ -4,12 +4,12 @@ Measures whether confidence scores align with actual accuracy. A well-calibrated
 system should have high confidence for correct predictions and low confidence
 for incorrect ones.
 """
+
 from __future__ import annotations
 
 import pytest
 
 from product.agents.evaluator import EvaluatorAgent
-
 
 # Known input-output pairs with expected confidence
 CALIBRATION_CASES = [

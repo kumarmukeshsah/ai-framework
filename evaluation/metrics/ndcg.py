@@ -1,4 +1,5 @@
 """nDCG (Normalized Discounted Cumulative Gain) metric for retrieval evaluation."""
+
 from __future__ import annotations
 
 import math
@@ -44,10 +45,7 @@ class NormalizedDiscountedCumulativeGain(BaseMetric):
 
         idcg = self._dcg(ideal_top)
 
-        if idcg == 0.0:
-            ndcg = 0.0
-        else:
-            ndcg = dcg / idcg
+        ndcg = 0.0 if idcg == 0.0 else dcg / idcg
 
         return MetricResult(
             name=self.name,

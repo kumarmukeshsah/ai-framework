@@ -3,25 +3,23 @@
 Every registered provider must implement the full LLMProvider interface.
 These tests verify that all providers conform to the contract.
 """
+
 from __future__ import annotations
 
-import abc
 import inspect
-from typing import get_type_hints
 
 import pytest
 
-from product.providers.base import LLMProvider, Message
-from product.providers.registry import ProviderRegistry
-
+import product.providers.anthropic  # noqa: F401
+import product.providers.azure_openai  # noqa: F401
+import product.providers.gemini  # noqa: F401
+import product.providers.ollama  # noqa: F401
 
 # Import all providers to register them
 import product.providers.openai  # noqa: F401
-import product.providers.anthropic  # noqa: F401
-import product.providers.ollama  # noqa: F401
-import product.providers.azure_openai  # noqa: F401
-import product.providers.gemini  # noqa: F401
 import product.providers.vllm  # noqa: F401
+from product.providers.base import LLMProvider, Message
+from product.providers.registry import ProviderRegistry
 
 # Expected set of core providers (not test registrations)
 EXPECTED_PROVIDERS = {"openai", "anthropic", "ollama", "azure_openai", "gemini", "vllm"}
@@ -51,9 +49,7 @@ class TestProviderContract:
         # If a class is still abstract, trying to instantiate it or checking
         # __abstractmethods__ will reveal it.
         abstract = getattr(cls, "__abstractmethods__", frozenset())
-        assert len(abstract) == 0, (
-            f"{provider_name} still has abstract methods: {abstract}"
-        )
+        assert len(abstract) == 0, f"{provider_name} still has abstract methods: {abstract}"
 
     def test_provider_can_be_instantiated(self, provider_name: str) -> None:
         """Provider without required API keys should fail gracefully."""
@@ -71,8 +67,12 @@ class TestProviderContract:
         """Verify the class has all required methods with correct signatures."""
         cls = ProviderRegistry.get_class(provider_name)
         required_methods = [
-            "generate", "structured_generate", "embeddings",
-            "stream", "count_tokens", "health_check",
+            "generate",
+            "structured_generate",
+            "embeddings",
+            "stream",
+            "count_tokens",
+            "health_check",
         ]
         for method_name in required_methods:
             assert hasattr(cls, method_name), f"{provider_name} missing method '{method_name}'"
@@ -90,13 +90,14 @@ class TestProviderContract:
         async_methods = {"generate", "structured_generate", "embeddings", "health_check"}
         for method_name in async_methods:
             method = getattr(cls, method_name)
-            assert inspect.iscoroutinefunction(method), (
-                f"{provider_name}.{method_name} should be a coroutine function"
-            )
+            assert inspect.iscoroutinefunction(
+                method
+            ), f"{provider_name}.{method_name} should be a coroutine function"
 
     def test_provider_returns_correct_types(self, provider_name: str) -> None:
         """Verify return type annotations match the base contract."""
         import inspect
+
         cls = ProviderRegistry.get_class(provider_name)
         base_cls = LLMProvider
 
@@ -112,13 +113,11 @@ class TestProviderContract:
                 actual_params = set(sig.parameters.keys()) - {"self"}
                 # Actual should accept all base params (may have more)
                 missing = base_params - actual_params
-                assert not missing, (
-                    f"{provider_name}.{method_name} missing parameters: {missing}"
-                )
+                assert not missing, f"{provider_name}.{method_name} missing parameters: {missing}"
                 # Method should not be abstract (concrete implementation)
-                assert not getattr(method, "__isabstractmethod__", False), (
-                    f"{provider_name}.{method_name} is still abstract"
-                )
+                assert not getattr(
+                    method, "__isabstractmethod__", False
+                ), f"{provider_name}.{method_name} is still abstract"
 
 
 class TestAllProvidersRegistered:
@@ -133,9 +132,9 @@ class TestAllProvidersRegistered:
         """All 6 core providers must be registered."""
         names = ProviderRegistry.get_names()
         core_providers = EXPECTED_PROVIDERS & set(names)
-        assert len(core_providers) >= 6, (
-            f"Only {len(core_providers)}/6 providers registered: {core_providers}"
-        )
+        assert (
+            len(core_providers) >= 6
+        ), f"Only {len(core_providers)}/6 providers registered: {core_providers}"
 
 
 class TestProviderMessageModel:

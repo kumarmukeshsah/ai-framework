@@ -1,14 +1,13 @@
 """API endpoint definitions for the AI Platform."""
+
 from __future__ import annotations
 
 import time
 import uuid
-from typing import Optional
 
 from fastapi import APIRouter, Depends
-from prometheus_client import generate_latest
 from fastapi.responses import Response
-from prometheus_client import CONTENT_TYPE_LATEST
+from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 
 from product.agents.evaluator import EvaluatorAgent
 from product.api.schemas import (
@@ -22,8 +21,7 @@ from product.api.schemas import (
 )
 from product.core.config import Settings, get_settings
 from product.core.logging import get_logger
-from product.core.telemetry import track_api_endpoint, track_prompt_version
-from product.providers.base import LLMProvider
+from product.core.telemetry import track_api_endpoint
 from product.providers.registry import ProviderRegistry
 from product.rag.chunkers import DocumentChunker
 from product.services.prompt_service import PromptManager
@@ -34,6 +32,7 @@ router = APIRouter()
 
 
 # ── Dependencies ──────────────────────────────────────────────────────────
+
 
 def _get_settings() -> Settings:
     return get_settings()
@@ -179,7 +178,7 @@ async def list_prompts(
 @router.get("/prompts/{prompt_name}")
 async def get_prompt(
     prompt_name: str,
-    version: Optional[str] = None,
+    version: str | None = None,
     prompt_manager: PromptManager = Depends(_get_prompt_manager),
 ) -> dict:
     """Get a specific prompt template."""

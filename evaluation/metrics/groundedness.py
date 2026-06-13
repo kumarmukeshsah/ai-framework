@@ -19,6 +19,7 @@ The heuristic used here is N-gram overlap (term coverage) for
 reproducibility in CI/CD. For higher accuracy, this can be combined
 with an LLM-as-judge pass or NLI model.
 """
+
 from __future__ import annotations
 
 import re
@@ -26,18 +27,61 @@ from typing import Any
 
 from .base import BaseMetric, MetricResult
 
-
 _SENTENCE_SPLIT = re.compile(r"(?<=[.!?])\s+(?=[A-Z])")
 
 # Common English stopwords - filtered out before n-gram extraction
-_STOPWORDS = frozenset({
-    "the", "and", "for", "are", "but", "not", "you", "all", "can",
-    "her", "was", "one", "our", "had", "has", "this", "that", "with",
-    "from", "they", "have", "been", "their", "than", "such", "also",
-    "into", "more", "some", "these", "would", "could", "should", "about",
-    "very", "when", "what", "where", "which", "while", "these", "those",
-    "there", "here", "will", "your", "yours", "them", "then", "than",
-})
+_STOPWORDS = frozenset(
+    {
+        "the",
+        "and",
+        "for",
+        "are",
+        "but",
+        "not",
+        "you",
+        "all",
+        "can",
+        "her",
+        "was",
+        "one",
+        "our",
+        "had",
+        "has",
+        "this",
+        "that",
+        "with",
+        "from",
+        "they",
+        "have",
+        "been",
+        "their",
+        "than",
+        "such",
+        "also",
+        "into",
+        "more",
+        "some",
+        "these",
+        "would",
+        "could",
+        "should",
+        "about",
+        "very",
+        "when",
+        "what",
+        "where",
+        "which",
+        "while",
+        "those",
+        "there",
+        "here",
+        "will",
+        "your",
+        "yours",
+        "them",
+        "then",
+    }
+)
 
 
 def _split_into_claims(text: str) -> list[str]:
@@ -80,7 +124,7 @@ def _claim_supported(claim: str, context_terms: set[str], context_text: str) -> 
     if not claim_terms:
         return True, 1.0
 
-    claim_lower = claim.lower()
+    claim.lower()
     found = 0
     for term in claim_terms:
         if term in context_text or term in context_terms:
@@ -186,10 +230,12 @@ class GroundednessMetric(BaseMetric):
             if is_supported:
                 supported.append(claim)
             else:
-                unsupported.append({
-                    "claim": claim,
-                    "coverage": round(coverage, 3),
-                })
+                unsupported.append(
+                    {
+                        "claim": claim,
+                        "coverage": round(coverage, 3),
+                    }
+                )
 
         # Score: fraction of supported claims
         groundedness = len(supported) / len(claims)

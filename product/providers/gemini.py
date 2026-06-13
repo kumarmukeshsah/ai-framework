@@ -1,13 +1,19 @@
 """Google Gemini provider implementation."""
+
 from __future__ import annotations
 
 import json
-from typing import Any, AsyncGenerator, List, Optional, Type
+from collections.abc import AsyncGenerator
 
 import httpx
 from pydantic import BaseModel
 
-from product.core.errors import ProviderAPIError, ProviderAuthError, ProviderConnectionError, ProviderRateLimitError
+from product.core.errors import (
+    ProviderAPIError,
+    ProviderAuthError,
+    ProviderConnectionError,
+    ProviderRateLimitError,
+)
 from product.core.telemetry import track_llm_call
 from product.providers.base import EmbeddingResponse, LLMProvider, LLMResponse, Message
 from product.providers.registry import register_provider
@@ -32,7 +38,7 @@ class GeminiProvider(LLMProvider):
         self.embedding_model = embedding_model
         self.api_base = api_base.rstrip("/")
         self.timeout = timeout
-        self._client: Optional[httpx.AsyncClient] = None
+        self._client: httpx.AsyncClient | None = None
 
     def _get_client(self) -> httpx.AsyncClient:
         if self._client is None:
@@ -43,19 +49,23 @@ class GeminiProvider(LLMProvider):
         return f"{self.api_base}/models/{self.model}:generateContent?key={self.api_key}"
 
     def _stream_url(self) -> str:
-        return f"{self.api_base}/models/{self.model}:streamGenerateContent?alt=sse&key={self.api_key}"
+        return (
+            f"{self.api_base}/models/{self.model}:streamGenerateContent?alt=sse&key={self.api_key}"
+        )
 
-    def _convert_messages(self, messages: List[Message]) -> List[dict]:
+    def _convert_messages(self, messages: list[Message]) -> list[dict]:
         contents = []
         system_instruction = None
         for m in messages:
             if m.role == "system":
                 system_instruction = m.content
             else:
-                contents.append({
-                    "role": "user" if m.role == "user" else "model",
-                    "parts": [{"text": m.content}],
-                })
+                contents.append(
+                    {
+                        "role": "user" if m.role == "user" else "model",
+                        "parts": [{"text": m.content}],
+                    }
+                )
         result = {"contents": contents}
         if system_instruction:
             result["system_instruction"] = {"parts": [{"text": system_instruction}]}
@@ -81,10 +91,10 @@ class GeminiProvider(LLMProvider):
     @track_llm_call(provider="gemini", model="gemini-1.5-pro")
     async def generate(
         self,
-        messages: List[Message],
+        messages: list[Message],
         temperature: float = 0.7,
-        max_tokens: Optional[int] = None,
-        stop_sequences: Optional[List[str]] = None,
+        max_tokens: int | None = None,
+        stop_sequences: list[str] | None = None,
     ) -> LLMResponse:
         payload = self._convert_messages(messages)
         payload["generationConfig"] = {"temperature": temperature}
@@ -110,10 +120,10 @@ class GeminiProvider(LLMProvider):
     @track_llm_call(provider="gemini", model="gemini-1.5-pro")
     async def structured_generate(
         self,
-        messages: List[Message],
-        response_model: Type[BaseModel],
+        messages: list[Message],
+        response_model: type[BaseModel],
         temperature: float = 0.7,
-        max_tokens: Optional[int] = None,
+        max_tokens: int | None = None,
     ) -> BaseModel:
         schema = response_model.model_json_schema()
         payload = self._convert_messages(messages)
@@ -128,9 +138,7 @@ class GeminiProvider(LLMProvider):
         parsed = json.loads(text)
         return response_model.model_validate(parsed)
 
-    async def embeddings(
-        self, texts: List[str], model: Optional[str] = None
-    ) -> EmbeddingResponse:
+    async def embeddings(self, texts: list[str], model: str | None = None) -> EmbeddingResponse:
         model_name = model or self.embedding_model
         url = f"{self.api_base}/models/{model_name}:embedContent?key={self.api_key}"
         payload = {"model": f"models/{model_name}", "content": {"parts": [{"text": texts[0]}]}}
@@ -144,9 +152,9 @@ class GeminiProvider(LLMProvider):
 
     async def stream(
         self,
-        messages: List[Message],
+        messages: list[Message],
         temperature: float = 0.7,
-        max_tokens: Optional[int] = None,
+        max_tokens: int | None = None,
     ) -> AsyncGenerator[str, None]:
         payload = self._convert_messages(messages)
         payload["generationConfig"] = {"temperature": temperature}

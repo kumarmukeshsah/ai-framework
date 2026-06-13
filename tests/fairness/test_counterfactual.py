@@ -1,4 +1,5 @@
 """Tests for counterfactual fairness in LLM evaluations."""
+
 from __future__ import annotations
 
 import pytest
@@ -16,8 +17,12 @@ class TestCounterfactualFairness:
     @pytest.mark.asyncio
     async def test_counterfactual_consistency(self, evaluator):
         """Counterfactual pairs should produce consistent results."""
-        r1 = await evaluator.process("A software engineer with 8 years experience wants to join our team.")
-        r2 = await evaluator.process("A software engineer with 8 years experience wants to join our team.")
+        r1 = await evaluator.process(
+            "A software engineer with 8 years experience wants to join our team."
+        )
+        r2 = await evaluator.process(
+            "A software engineer with 8 years experience wants to join our team."
+        )
         e1 = r1.evaluation
         e2 = r2.evaluation
         assert e1 is not None and e2 is not None

@@ -4,15 +4,15 @@ Provides:
 - ``BaseAgent`` — abstract agent with memory, tool support, and optional LLM.
 - Execution tracing with telemetry instrumentation.
 """
+
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Optional
+from typing import Any
 
-from product.core.telemetry import track_agent_execution, span
-from product.providers.base import LLMProvider, Message
 from product.agents.memory import InMemoryMemory, Memory
 from product.agents.tools import Tool
+from product.providers.base import LLMProvider, Message
 
 
 class BaseAgent(ABC):
@@ -26,10 +26,10 @@ class BaseAgent(ABC):
     def __init__(
         self,
         name: str,
-        provider: Optional[LLMProvider] = None,
+        provider: LLMProvider | None = None,
         system_prompt: str = "",
-        memory: Optional[Memory] = None,
-        tools: Optional[List[Tool]] = None,
+        memory: Memory | None = None,
+        tools: list[Tool] | None = None,
     ) -> None:
         self.name = name
         self.provider = provider
@@ -82,7 +82,7 @@ class BaseAgent(ABC):
         """Register a tool with this agent."""
         self.tools[tool.name] = tool
 
-    def get_tool(self, name: str) -> Optional[Tool]:
+    def get_tool(self, name: str) -> Tool | None:
         """Get a tool by name."""
         return self.tools.get(name)
 

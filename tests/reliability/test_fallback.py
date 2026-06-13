@@ -3,6 +3,7 @@
 Ensures that when a primary provider fails, the system gracefully
 falls back to alternative providers without data loss or errors.
 """
+
 from __future__ import annotations
 
 import pytest
@@ -16,9 +17,9 @@ class TestFallbackMechanisms:
     def test_registry_contains_fallback_options(self):
         """Registry should have multiple providers for fallback."""
         names = ProviderRegistry.get_names()
-        assert len(names) >= 2, (
-            f"Need at least 2 providers for fallback, only have {len(names)}: {names}"
-        )
+        assert (
+            len(names) >= 2
+        ), f"Need at least 2 providers for fallback, only have {len(names)}: {names}"
 
     def test_known_provider_creation(self):
         """Known providers should be creatable with proper args."""
@@ -33,12 +34,14 @@ class TestFallbackMechanisms:
     def test_invalid_provider_name_raises(self):
         """Invalid provider name should raise ProviderNotFoundError."""
         from product.core.errors import ProviderNotFoundError
+
         with pytest.raises(ProviderNotFoundError):
             ProviderRegistry.create("nonexistent_provider")
 
     def test_provider_not_found_error_message(self):
         """Error message should list available providers."""
         from product.core.errors import ProviderNotFoundError
+
         try:
             ProviderRegistry.create("fake_provider")
         except ProviderNotFoundError as e:

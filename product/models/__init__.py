@@ -1,9 +1,10 @@
 """Domain models for the AI Platform."""
+
 from product.models.candidate import (
     CandidateEvaluation,
-    RubricBreakdown,
-    EvaluationStageResult,
     EvaluationPipelineResult,
+    EvaluationStageResult,
+    RubricBreakdown,
 )
 
 __all__ = [

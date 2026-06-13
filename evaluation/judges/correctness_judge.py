@@ -1,4 +1,5 @@
 """Correctness judge - evaluates factual accuracy of outputs."""
+
 from __future__ import annotations
 
 from typing import Any
@@ -71,9 +72,10 @@ class CorrectnessJudge(BaseJudge):
             f"Key facts present: {facts_present}/{len(key_facts)}"
         )
 
-        feedback = "High factual accuracy" if final_score >= 0.8 else (
-            "Moderate factual accuracy" if final_score >= 0.5 else
-            "Low factual accuracy"
+        feedback = (
+            "High factual accuracy"
+            if final_score >= 0.8
+            else ("Moderate factual accuracy" if final_score >= 0.5 else "Low factual accuracy")
         )
 
         return JudgeResult(
