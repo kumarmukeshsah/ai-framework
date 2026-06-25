@@ -12,11 +12,9 @@ from __future__ import annotations
 
 import argparse
 import json
-import os
 import sys
 from pathlib import Path
 from typing import Any
-
 
 # Thresholds for different evaluation tracks
 DEFAULT_THRESHOLDS = {
@@ -176,10 +174,7 @@ class QualityGate:
             track_scores["custom_validators"] = 0.0
 
         # Overall score
-        if track_scores:
-            overall = sum(track_scores.values()) / len(track_scores)
-        else:
-            overall = 0.0
+        overall = sum(track_scores.values()) / len(track_scores) if track_scores else 0.0
 
         threshold = self.thresholds.get("overall", 0.8)
         passed = overall >= threshold and len(self.violations) == 0
@@ -227,9 +222,9 @@ class QualityGate:
         lines.extend([
             "",
             "### Details",
-            f"- Total tests evaluated across 3 tracks (DeepEval, RAGAS, Custom Validators)",
+            "- Total tests evaluated across 3 tracks (DeepEval, RAGAS, Custom Validators)",
             f"- Threshold: {result['threshold']:.0%}",
-            f"- [View full results](tests/prompts/results/eval_results.json)",
+            "- [View full results](tests/prompts/results/eval_results.json)",
         ])
 
         return "\n".join(lines)

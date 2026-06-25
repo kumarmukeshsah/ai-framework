@@ -16,12 +16,12 @@ Metrics covered:
 from __future__ import annotations
 
 import json
-import os
 import sys
+from pathlib import Path
 from typing import Any
 
 # Add project root to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", ".."))
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 # Lazy import flag - RAGAS requires Python 3.10+
 RAGAS_AVAILABLE = False
@@ -43,14 +43,14 @@ class RAGASRunner:
 
         global RAGAS_AVAILABLE
         try:
+            from datasets import Dataset
             from ragas.metrics import (
+                answer_relevancy,
                 context_precision,
                 context_recall,
                 faithfulness,
-                answer_relevancy,
             )
             from ragas.metrics._retrieval import MRR, NDCG, Recall
-            from datasets import Dataset
 
             self._metrics = {
                 "mrr": MRR(),

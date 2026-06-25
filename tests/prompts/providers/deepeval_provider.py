@@ -14,20 +14,20 @@ Metrics covered:
 from __future__ import annotations
 
 import json
-import os
 import sys
+from pathlib import Path
 from typing import Any
 
 # Add project root to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", ".."))
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 DEEPEVAL_AVAILABLE = False
 try:
     from deepeval.metrics import (
-        HallucinationMetric,
-        FaithfulnessMetric,
-        ToxicityMetric,
         BiasMetric,
+        FaithfulnessMetric,
+        HallucinationMetric,
+        ToxicityMetric,
     )
     from deepeval.test_case import LLMTestCase
 

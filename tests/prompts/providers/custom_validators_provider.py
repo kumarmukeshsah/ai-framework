@@ -20,21 +20,21 @@ Validators covered:
 from __future__ import annotations
 
 import json
-import os
 import sys
 import time
+from pathlib import Path
 from typing import Any
 
 # Add project root to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", ".."))
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 try:
-    from evaluation.judges.correctness_judge import CorrectnessJudge
-    from evaluation.judges.relevance_judge import RelevanceJudge
     from evaluation.judges.completeness_judge import CompletenessJudge
-    from evaluation.judges.hallucination_judge import HallucinationJudge
-    from evaluation.judges.safety_judge import SafetyJudge
+    from evaluation.judges.correctness_judge import CorrectnessJudge
     from evaluation.judges.fairness_judge import FairnessJudge
+    from evaluation.judges.hallucination_judge import HallucinationJudge
+    from evaluation.judges.relevance_judge import RelevanceJudge
+    from evaluation.judges.safety_judge import SafetyJudge
 
     JUDGES_AVAILABLE = True
 except ImportError:
