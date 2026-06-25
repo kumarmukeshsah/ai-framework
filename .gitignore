@@ -1,0 +1,36 @@
+# Promptfoo results
+tests/prompts/results/
+tests/prompts/results/*.json
+tests/prompts/results/*.log
+tests/prompts/results/*.md
+
+# Node
+node_modules/
+npm-debug.log*
+package-lock.json
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+.eggs/
+.venv/
+venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.local

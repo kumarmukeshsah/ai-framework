@@ -169,6 +169,131 @@ Each judge produces:
 - `strong_hire`, `experienced`, `senior`
 - `non_english`, `prompt_injection`, `adversarial`, `gibberish`
 
+## Promptfoo Multi-Track Evaluation
+
+**Location**: `tests/prompts/`
+**Orchestrator**: [Promptfoo](https://www.promptfoo.dev/) (v0.121+)
+**Architecture**:
+
+```
+                    Git PR
+                       │
+                       ▼
+              ┌─────────────────┐
+              │  Promptfoo Eval  │
+              └────────┬────────┘
+                       │
+       ┌───────────────┼───────────────┐
+       │               │               │
+       ▼               ▼               ▼
+┌─────────────┐ ┌─────────────┐ ┌─────────────┐
+│  DeepEval   │ │   RAGAS     │ │   Custom    │
+│  Track      │ │   Track     │ │   Track     │
+├─────────────┤ ├─────────────┤ ├─────────────┤
+│Hallucination│ │    MRR      │ │ JSON Schema │
+│Faithfulness │ │    NDCG     │ │ Tool Trace  │
+│ Toxicity    │ │   Recall    │ │ API Valid.  │
+│    Bias     │ │   Context   │ │ Cost Cap    │
+│             │ │   Relev.    │ │ Latency SLA │
+│             │ │  Faithfuln. │ │ Biz Rules   │
+└──────┬──────┘ └──────┬──────┘ └──────┬──────┘
+       │               │               │
+       └───────────────┼───────────────┘
+                       │
+                       ▼
+              ┌─────────────────┐
+              │   Quality Gate   │
+              │  (Pass >= 0.8)  │
+              └────────┬────────┘
+                       │
+           ┌───────────┴───────────┐
+           │                       │
+           ▼                       ▼
+       Deploy ✅              Reject ❌
+```
+
+### Track 1: DeepEval Metrics
+| Metric | Description | Threshold |
+|--------|-------------|-----------|
+| Hallucination | Measures factual hallucination (lower=better) | ≥ 0.7 |
+| Faithfulness | How well output aligns with context | ≥ 0.8 |
+| Toxicity | Measures harmful content (lower=better) | ≥ 0.7 |
+| Bias | Measures demographic bias (lower=better) | ≥ 0.7 |
+
+### Track 2: RAGAS Metrics
+| Metric | Description | Threshold |
+|--------|-------------|-----------|
+| MRR | Mean Reciprocal Rank for retrieval | ≥ 0.5 |
+| NDCG | Normalized Discounted Cumulative Gain | ≥ 0.5 |
+| Recall | Fraction of relevant docs retrieved | ≥ 0.5 |
+| Context Precision | Precision of retrieved contexts | ≥ 0.6 |
+| Context Recall | Recall of retrieved contexts | ≥ 0.6 |
+| Faithfulness | Output grounded in context | ≥ 0.7 |
+| Answer Relevancy | How relevant the answer is | ≥ 0.7 |
+
+### Track 3: Custom Validators
+| Validator | Source | Threshold |
+|-----------|--------|-----------|
+| Correctness | `CorrectnessJudge` | ≥ 0.7 |
+| Relevance | `RelevanceJudge` | ≥ 0.7 |
+| Completeness | `CompletenessJudge` | ≥ 0.7 |
+| Hallucination | `HallucinationJudge` | ≥ 0.7 |
+| Safety | `SafetyJudge` | ≥ 0.8 |
+| Fairness | `FairnessJudge` | ≥ 0.8 |
+| JSON Schema | Schema compliance checker | ≥ 0.8 |
+| Cost Cap | Per-call cost under $0.01 | ≥ 0.8 |
+| Latency SLA | Response under 10s | ≥ 0.8 |
+| Tool Trace | Tool call validity | ≥ 0.8 |
+
+### Files
+
+| File | Purpose |
+|------|---------|
+| `tests/prompts/promptfooconfig.yaml` | Main orchestrator config |
+| `tests/prompts/prompts/candidate_v{1,2,3}.txt` | Prompt templates (3 versions) |
+| `tests/prompts/providers/deepeval_provider.py` | DeepEval metric wrapper |
+| `tests/prompts/providers/ragas_provider.py` | RAGAS metric wrapper |
+| `tests/prompts/providers/custom_validators_provider.py` | Custom judge wrappers |
+| `tests/prompts/datasets/promptfoo_test_cases.csv` | 12 test scenarios |
+| `tests/prompts/quality_gate.py` | Aggregation + pass/fail decision |
+| `tests/prompts/redteam/redteam_config.yaml` | Red teaming config |
+
+### Test Categories
+
+| Category | Count | Scenarios |
+|----------|-------|-----------|
+| Senior/Strong Hire | 4 | Backend, VP Eng, DevOps, QA |
+| Junior/Consider | 3 | Junior, Mid-level, Graduate |
+| Edge Cases | 3 | Empty, Non-English, Gibberish |
+| Adversarial | 1 | Prompt injection |
+| Mixed | 1 | Customer-focused |
+
+### Running
+
+```bash
+# Run Promptfoo evaluation
+npx promptfoo eval \
+  --config tests/prompts/promptfooconfig.yaml \
+  --output tests/prompts/results/eval_results.json
+
+# Run quality gate
+python tests/prompts/quality_gate.py \
+  --results tests/prompts/results/eval_results.json
+
+# Run red teaming
+npx promptfoo redteam \
+  --config tests/prompts/redteam/redteam_config.yaml \
+  --output tests/prompts/results/redteam_results.json
+
+# View web UI
+npx promptfoo view
+```
+
+### CI Integration
+- **PR Pipeline** (`promptfoo-eval.yml`): Runs on PRs touching prompts
+- **Quality Gate**: Enforces ≥ 0.8 overall score, posts PR comment
+- **Red Teaming**: Runs on main branch only (nightly)
+
 ## Running Tests
 
 ```bash
@@ -203,12 +328,19 @@ runner = DatasetRunner(agent, threshold=0.7)
 report = asyncio.run(runner.run_dataset('evaluation/datasets/golden_dataset.json'))
 print(report.summary())
 "
+
+# Promptfoo multi-track evaluation
+npx promptfoo eval --config tests/prompts/promptfooconfig.yaml
+
+# Quality gate
+python tests/prompts/quality_gate.py --results tests/prompts/results/eval_results.json
 ```
 
 ## Key Quality Gates
 
 1. **Coverage**: `--cov-fail-under=80` enforced in PR and Release
 2. **Evaluation Pass Rate**: 70% nightly, 80% release
-3. **Contract Tests**: Strict markers, signature verification
-4. **Security**: All 23 injection patterns must be detected
-5. **Benchmarks**: Minimum 5 rounds for reliable measurements
+3. **Promptfoo Quality Gate**: ≥ 0.8 overall across 3 evaluation tracks
+4. **Contract Tests**: Strict markers, signature verification
+5. **Security**: All 23 injection patterns must be detected
+6. **Benchmarks**: Minimum 5 rounds for reliable measurements

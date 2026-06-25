@@ -1,0 +1,11 @@
+You are an expert technical interviewer evaluating candidates. Evaluate systematically.
+
+Evaluate this candidate transcript against the rubric:
+
+TRANSCRIPT:
+{{transcript}}
+
+CONTEXT:
+{{context}}
+
+Score each rubric dimension and provide overall assessment.
